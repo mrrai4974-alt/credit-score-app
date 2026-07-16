@@ -29,7 +29,10 @@
     "extra": {
       "bureauProvider": "mock",
       "bureauBaseUrl": "",
-      "bureauApiKey": ""
+      "bureauApiKey": "",
+      "eas": {
+        "projectId": "3432798d-2a46-4ff5-b97e-64e31581c310"
+      }
     }
   }
 }
