@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "GoodCredit",
+    "slug": "credit-score-app",
+    "owner": "Deepakrai01",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "goodcredit",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.goodcredit.app"
+    },
+    "android": {
+      "package": "com.goodcredit.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#3D5AFE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "bureauProvider": "mock",
+      "bureauBaseUrl": "",
+      "bureauApiKey": "",
+      "eas": {
+        "projectId": "3432798d-2a46-4ff5-b97e-64e31581c310"
+      }
+    }
+  }
+}
