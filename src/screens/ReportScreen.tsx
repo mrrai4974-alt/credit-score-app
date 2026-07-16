@@ -52,7 +52,8 @@ export function ReportScreen() {
             <Ionicons name="warning" size={22} color={colors.danger} />
             <View style={styles.flex}>
               <Text style={styles.alertTitle}>
-                {suspected.length} account{suspected.length > 1 ? 's' : ''} need your attention
+                {suspected.length} account{suspected.length > 1 ? 's' : ''}{' '}
+                {suspected.length > 1 ? 'need' : 'needs'} your attention
               </Text>
               <Text style={styles.alertBody}>
                 We spotted an account you may not recognise. Review and raise a dispute if it’s not
