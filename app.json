@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "GoodCredit",
+    "slug": "credit-score-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "goodcredit",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.goodcredit.app"
+    },
+    "android": {
+      "package": "com.goodcredit.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#3D5AFE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "bureauProvider": "mock",
+      "bureauBaseUrl": "",
+      "bureauApiKey": ""
+    }
+  }
+}
