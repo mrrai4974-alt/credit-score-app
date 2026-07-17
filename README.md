@@ -1,3 +1,25 @@
+# Doorstep Two-Wheeler Service Platform — Mobile Apps
+
+This repository contains the mobile clients for the Doorstep Two-Wheeler
+Service Platform defined in the BRD *(Doorstep Two-Wheeler Service Platform,
+v1.0)*. Both are **Expo + React Native + TypeScript** apps sharing one platform
+brand, so a single codebase per app runs on Android, iOS, and web.
+
+| App | Audience | BRD section | Location |
+|---|---|---|---|
+| **Bike Mistri** | Field mechanic ("mistri") / partner | §7.2 (FR-17 … FR-24) | repo root (this README) |
+| **Doorstep Bike Service** | Customer / rider | §7.1 (FR-01 … FR-16) | [`customer-app/`](customer-app/) |
+
+> The admin/operations console and marketing site (other BRD sections) are
+> separate clients and are not yet part of this repo.
+
+Each app is self-contained with its own `package.json`; run `npm install` inside
+the app's directory. See [`customer-app/README.md`](customer-app/README.md) for
+the customer app. The rest of this document covers the **Bike Mistri partner
+app** at the repo root.
+
+---
+
 # Bike Mistri — Partner (Mechanic) App
 
 A cross-platform mobile app for the **field mechanic ("mistri")** of the

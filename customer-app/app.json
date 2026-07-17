@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Doorstep Bike Service",
+    "slug": "doorstep-customer-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "doorstepbike",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0F1B2D"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.doorstepbike.customer"
+    },
+    "android": {
+      "package": "com.doorstepbike.customer",
+      "adaptiveIcon": {
+        "backgroundColor": "#0F1B2D"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
