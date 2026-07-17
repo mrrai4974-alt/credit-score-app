@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { LoansScreen } from '../screens/LoansScreen';
 import { MoreScreen } from '../screens/MoreScreen';
@@ -20,6 +21,11 @@ const ICONS: Record<keyof MainTabParamList, { on: keyof typeof Ionicons.glyphMap
 };
 
 export function MainTabNavigator() {
+  // Add the device's bottom inset so the tab bar sits above the system
+  // navigation bar / gesture area instead of being hidden behind it.
+  const insets = useSafeAreaInsets();
+  const bottomInset = insets.bottom;
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -29,8 +35,8 @@ export function MainTabNavigator() {
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
-          height: 60,
-          paddingBottom: 6,
+          height: 60 + bottomInset,
+          paddingBottom: 6 + bottomInset,
           paddingTop: 6,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },

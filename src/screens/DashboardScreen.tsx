@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   },
   bellDotText: { ...typography.tiny, color: colors.textInverse, fontSize: 10 },
   body: { paddingHorizontal: spacing.md, gap: spacing.md, marginTop: -spacing.xxl },
-  scoreCard: { alignItems: 'center', paddingVertical: spacing.lg },
+  scoreCard: { alignItems: 'center', paddingTop: spacing.xl, paddingBottom: spacing.lg },
   gaugeWrap: { alignItems: 'center' },
   changeRow: { marginTop: spacing.xs },
   changePill: {
