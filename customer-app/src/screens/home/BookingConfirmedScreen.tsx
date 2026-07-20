@@ -32,7 +32,7 @@ export const BookingConfirmedScreen: React.FC<{
         <KeyValue label="Slot" value={booking.slot} />
         <KeyValue
           label="Payment"
-          value={booking.paymentMethod === 'online' ? 'Paid online' : 'Pay after service'}
+          value={booking.paymentMethod === 'online' ? 'Pay online (Razorpay)' : 'Pay after service'}
         />
       </Card>
     </View>

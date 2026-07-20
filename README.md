@@ -8,7 +8,7 @@ operations) plus the public marketing site.
 
 | Component | Audience | Stack | BRD section | Location |
 |---|---|---|---|---|
-| **Backend API** | All clients | Node + Express + TypeScript | §7 (shared) | [`backend/`](backend/) |
+| **Backend API** | All clients | Node + Express + TS · PostgreSQL · Razorpay | §7 (shared) | [`backend/`](backend/) |
 | **Bike Mistri** | Field mechanic ("mistri") / partner | Expo RN (Android/iOS/web) | §7.2 (FR-17 … FR-24) | repo root (this README) |
 | **Doorstep Bike Service** | Customer / rider | Expo RN (Android/iOS/web) | §7.1 (FR-01 … FR-16) | [`customer-app/`](customer-app/) |
 | **Doorstep Ops** | Admin / operations team | Vite + React (web) | §7.3 (FR-25 … FR-35) | [`admin-console/`](admin-console/) |
@@ -43,12 +43,17 @@ the admin pipeline.
 
 Auth is JWT-based: customers and mechanics sign in with mobile OTP (dev OTP
 `123456`), admins with email + password (`admin@doorstepbike.example` /
-`admin123`). See [`backend/README.md`](backend/README.md) for the full endpoint
-list and data model.
+`admin123`). Data persists in **PostgreSQL**; **payments** run through Razorpay
+(order → checkout → server-side signature verification), with a mock mode when
+no keys are set. See [`backend/README.md`](backend/README.md) for the full
+endpoint list, data model, and payment flow.
 
 ## Run the whole platform locally
 
 ```bash
+# 0) PostgreSQL — the backend needs a database (default:
+#    postgresql://doorstep:doorstep@localhost:5432/doorstep). See backend/README.
+
 # 1) Backend — start first (clients default to http://localhost:4000/api)
 cd backend && npm install && npm start        # http://localhost:4000
 

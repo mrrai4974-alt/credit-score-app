@@ -51,7 +51,7 @@ router.post('/', requireAuth('customer'), (req: AuthedRequest, res) => {
     beforePhoto: false,
     afterPhoto: false,
     paymentMethod: paymentMethod === 'cod' ? 'cod' : 'online',
-    paid: paymentMethod === 'online',
+    paid: false, // payment is captured via the Razorpay flow (/payments/*)
     promoCode: promoCode || undefined,
     discount: Number(discount) || 0,
     warrantyDays: plan ? plan.warrantyDays : 10,

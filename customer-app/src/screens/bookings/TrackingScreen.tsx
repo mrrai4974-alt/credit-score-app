@@ -229,10 +229,14 @@ export const TrackingScreen: React.FC<{
               </TouchableOpacity>
             )}
           </Row>
-          {!b.paid && b.status === 'completed' && (
+          {!b.paid && b.status !== 'cancelled' && (
             <Button
-              title={`Pay ${inr(total)}`}
-              onPress={() => payBooking(b.id)}
+              title={`Pay ${inr(total)} securely`}
+              onPress={() =>
+                payBooking(b.id).catch((e) =>
+                  Alert.alert('Payment', (e as Error).message),
+                )
+              }
               style={{ marginTop: spacing.md }}
               full
             />

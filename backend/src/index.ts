@@ -8,6 +8,7 @@ import bookingRoutes from './routes/bookings';
 import catalogRoutes from './routes/catalog';
 import mechanicRoutes from './routes/mechanics';
 import opsRoutes from './routes/ops';
+import paymentRoutes from './routes/payments';
 import vehicleRoutes from './routes/vehicles';
 
 const app = express();
@@ -26,6 +27,7 @@ app.use('/api', catalogRoutes); // /api/services, /api/brands
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/mechanics', mechanicRoutes);
+app.use('/api/payments', paymentRoutes);
 app.use('/api', opsRoutes); // /api/promos, /api/coupons, /api/plans, /api/disputes, /api/leads, /api/content, /api/analytics
 
 // Dev helper: reset the store to its seed state.
@@ -41,6 +43,21 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Doorstep backend listening on http://localhost:${PORT}`);
+async function main() {
+  await db.init();
+  const server = app.listen(PORT, () => {
+    console.log(`Doorstep backend listening on http://localhost:${PORT}`);
+  });
+
+  const shutdown = async () => {
+    await db.flush();
+    server.close(() => process.exit(0));
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+}
+
+main().catch((e) => {
+  console.error('Failed to start backend:', e);
+  process.exit(1);
 });

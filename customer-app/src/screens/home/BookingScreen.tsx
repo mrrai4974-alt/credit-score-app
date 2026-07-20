@@ -248,7 +248,7 @@ export const BookingScreen: React.FC<{
 
       <View style={styles.footer}>
         <Button
-          title={payment === 'online' ? `Pay ${inr(total)} & confirm` : `Confirm booking · ${inr(total)}`}
+          title={`Confirm booking · ${inr(total)}`}
           onPress={confirm}
           full
         />

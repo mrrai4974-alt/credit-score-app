@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 
 import { api, setToken } from '../api';
+import { payForBooking } from '../payments';
 import { services as catalogServices } from '../data/catalog';
 import { Booking, Service, Vehicle } from '../types';
 
@@ -239,8 +240,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const payBooking = useCallback(
     async (id: string) => {
-      const b = await api.post<ApiBooking>(`/bookings/${id}/pay`);
-      applyResult(b);
+      // Razorpay flow: create order -> checkout -> server-side verify.
+      const r = await payForBooking(id);
+      applyResult(r.booking as ApiBooking);
     },
     [applyResult],
   );
