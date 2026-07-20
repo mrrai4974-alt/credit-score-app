@@ -164,6 +164,14 @@ router.post('/:id/extras', requireAuth('mechanic'), (req: AuthedRequest, res) =>
   res.json(b);
 });
 
+router.delete('/:id/extras/:extraId', requireAuth('mechanic'), (req: AuthedRequest, res) => {
+  const b = mine(req, res);
+  if (!b) return;
+  b.extras = b.extras.filter((e) => e.id !== req.params.extraId);
+  touch(b);
+  res.json(b);
+});
+
 router.post('/:id/request-approval', requireAuth('mechanic'), (req: AuthedRequest, res) => {
   const b = mine(req, res);
   if (!b) return;

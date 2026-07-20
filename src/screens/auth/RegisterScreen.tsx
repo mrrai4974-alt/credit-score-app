@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -143,7 +144,11 @@ export const RegisterScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => 
         <View style={{ marginTop: spacing.lg }}>
           <Button
             title="Submit for verification"
-            onPress={() => register(name, phone, city)}
+            onPress={() => {
+              register(name, phone, city).catch((e) =>
+                Alert.alert('Registration failed', (e as Error).message),
+              );
+            }}
             disabled={!canSubmit}
             full
           />

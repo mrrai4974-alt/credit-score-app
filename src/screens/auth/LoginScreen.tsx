@@ -17,13 +17,38 @@ import { colors, font, radius, spacing } from '../../theme/theme';
 export const LoginScreen: React.FC<{ onRegister: () => void }> = ({
   onRegister,
 }) => {
-  const { login } = useApp();
+  const { requestOtp, verifyOtp } = useApp();
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const sendOtp = () => {
-    if (phone.replace(/\D/g, '').length >= 10) setOtpSent(true);
+  const sendOtp = async () => {
+    if (phone.replace(/\D/g, '').length < 10) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const devOtp = await requestOtp(phone);
+      setOtp(devOtp);
+      setOtpSent(true);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const verify = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await verifyOtp(phone, otp);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -73,10 +98,12 @@ export const LoginScreen: React.FC<{ onRegister: () => void }> = ({
             </>
           )}
 
+          {error && <Text style={styles.error}>{error}</Text>}
+
           {!otpSent ? (
-            <Button title="Send OTP" onPress={sendOtp} full />
+            <Button title={busy ? 'Sending…' : 'Send OTP'} onPress={sendOtp} disabled={busy} full />
           ) : (
-            <Button title="Verify & sign in" onPress={login} full />
+            <Button title={busy ? 'Signing in…' : 'Verify & sign in'} onPress={verify} disabled={busy} full />
           )}
 
           <View style={styles.footer}>
@@ -145,4 +172,5 @@ const styles = StyleSheet.create({
   },
   footerText: { color: colors.textMuted, fontSize: font.body },
   footerLink: { color: colors.primary, fontSize: font.body, fontWeight: '700' },
+  error: { color: colors.danger, fontSize: font.small, marginBottom: spacing.sm, textAlign: 'center' },
 });

@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Switch,
@@ -20,8 +21,19 @@ type Tab = 'new' | 'active' | 'done';
 export const JobsScreen: React.FC<{ onOpenJob: (jobId: string) => void }> = ({
   onOpenJob,
 }) => {
-  const { mechanic, jobs, setOnline, acceptJob, declineJob } = useApp();
+  const { mechanic, jobs, setOnline, acceptJob, declineJob, refreshJobs } = useApp();
   const [tab, setTab] = useState<Tab>('new');
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    refreshJobs().catch(() => {});
+  }, [refreshJobs]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refreshJobs().catch(() => {});
+    setRefreshing(false);
+  };
 
   const groups = useMemo(() => {
     const isActive = (j: Job) =>
@@ -95,7 +107,10 @@ export const JobsScreen: React.FC<{ onOpenJob: (jobId: string) => void }> = ({
         ))}
       </View>
 
-      <ScrollView contentContainerStyle={styles.list}>
+      <ScrollView
+        contentContainerStyle={styles.list}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
         {!mechanic.online && tab === 'new' ? (
           <Empty
             emoji="🌙"
@@ -121,8 +136,7 @@ export const JobsScreen: React.FC<{ onOpenJob: (jobId: string) => void }> = ({
               job={job}
               onPress={() => onOpenJob(job.id)}
               onAccept={() => {
-                acceptJob(job.id);
-                setTab('active');
+                acceptJob(job.id).then(() => setTab('active')).catch(() => {});
               }}
               onDecline={() => declineJob(job.id)}
             />

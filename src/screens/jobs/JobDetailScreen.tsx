@@ -38,7 +38,7 @@ export const JobDetailScreen: React.FC<{
     addIssue,
     removeIssue,
     requestApproval,
-    simulateCustomerDecision,
+    refreshJobs,
     setPhoto,
     confirmCompletion,
   } = useApp();
@@ -87,8 +87,7 @@ export const JobDetailScreen: React.FC<{
   const nextStatusButton = () => {
     const flow: { from: JobStatus; to: JobStatus; label: string }[] = [
       { from: 'accepted', to: 'en_route', label: 'Start ride to customer' },
-      { from: 'en_route', to: 'arrived', label: "I've arrived" },
-      { from: 'arrived', to: 'in_progress', label: 'Start service' },
+      { from: 'en_route', to: 'in_progress', label: "I've arrived — start service" },
     ];
     const step = flow.find((f) => f.from === job.status);
     if (!step) return null;
@@ -158,7 +157,7 @@ export const JobDetailScreen: React.FC<{
         </Card>
 
         {/* Status progression */}
-        {['accepted', 'en_route', 'arrived'].includes(job.status) && (
+        {['accepted', 'en_route'].includes(job.status) && (
           <View style={{ marginTop: spacing.lg }}>{nextStatusButton()}</View>
         )}
 
@@ -296,22 +295,16 @@ export const JobDetailScreen: React.FC<{
                   ⏳ Waiting for customer approval
                 </Text>
                 <Text style={styles.help}>
-                  A request was sent to the customer's app. (Demo: simulate the
-                  response.)
+                  The request was sent to the customer's app. They approve or
+                  decline it there; pull the latest below.
                 </Text>
-                <Row style={{ gap: spacing.sm, marginTop: spacing.sm }}>
-                  <Button
-                    title="Customer approves"
-                    onPress={() => simulateCustomerDecision(job.id, true)}
-                    style={{ flex: 1 }}
-                  />
-                  <Button
-                    title="Rejects"
-                    variant="danger"
-                    onPress={() => simulateCustomerDecision(job.id, false)}
-                    style={{ flex: 1 }}
-                  />
-                </Row>
+                <Button
+                  title="↻ Refresh"
+                  variant="secondary"
+                  onPress={() => refreshJobs()}
+                  style={{ marginTop: spacing.sm }}
+                  full
+                />
               </View>
             )}
           </Card>

@@ -6,219 +6,291 @@ import React, {
   useState,
 } from 'react';
 
-import {
-  currentMechanic as seedMechanic,
-  initialJobs,
-} from '../data/mockData';
-import {
-  AdditionalIssue,
-  Job,
-  JobStatus,
-  Mechanic,
-} from '../types';
+import { api, setToken } from '../api';
+import { currentMechanic as seedMechanic } from '../data/mockData';
+import { Job, JobStatus, Mechanic } from '../types';
+
+/* -------------------------------------------------- API response shapes */
+
+interface ApiMechanic {
+  id: string;
+  name: string;
+  phone: string;
+  city: string;
+  verification: 'pending' | 'in_review' | 'verified' | 'suspended';
+  skills: string[];
+  rating: number;
+  jobsCompleted: number;
+  serviceRadiusKm: number;
+  online: boolean;
+}
+interface ApiExtra {
+  id: string;
+  title: string;
+  price: number;
+  approved: 'pending' | 'approved' | 'rejected';
+}
+interface ApiBooking {
+  id: string;
+  code: string;
+  status: 'booked' | 'assigned' | 'en_route' | 'in_service' | 'awaiting_approval' | 'completed' | 'cancelled';
+  serviceName: string;
+  category: Job['category'];
+  basePrice: number;
+  inspectionPoints: number;
+  estimatedDurationMin: number;
+  slot: string;
+  customerName: string;
+  vehicle: string;
+  address: string;
+  mechanicId: string | null;
+  checklist: { id: string; label: string; done: boolean }[];
+  extras: ApiExtra[];
+  beforePhoto: boolean;
+  afterPhoto: boolean;
+}
+
+function mapStatus(b: ApiBooking): JobStatus {
+  switch (b.status) {
+    case 'booked': return 'available';
+    case 'assigned': return 'accepted';
+    case 'en_route': return 'en_route';
+    case 'in_service': return 'in_progress';
+    case 'awaiting_approval': return 'awaiting_approval';
+    case 'completed': return 'completed';
+    case 'cancelled': return 'declined';
+    default: return 'available';
+  }
+}
+
+// Deterministic pseudo-distance for display (backend has no geo).
+const distanceFor = (id: string) => {
+  const n = [...id].reduce((s, c) => s + c.charCodeAt(0), 0);
+  return Math.round(((n % 70) / 10 + 0.6) * 10) / 10;
+};
+
+function toJob(b: ApiBooking): Job {
+  return {
+    id: b.id,
+    code: b.code,
+    status: mapStatus(b),
+    serviceName: b.serviceName,
+    category: b.category,
+    basePrice: b.basePrice,
+    inspectionPoints: b.inspectionPoints,
+    estimatedDurationMin: b.estimatedDurationMin,
+    scheduledSlot: b.slot,
+    customerName: b.customerName,
+    vehicle: b.vehicle,
+    address: b.address,
+    distanceKm: distanceFor(b.id),
+    checklist: b.checklist,
+    additionalIssues: b.extras.map((e) => ({ id: e.id, title: e.title, price: e.price, approved: e.approved })),
+    beforePhotoTaken: b.beforePhoto,
+    afterPhotoTaken: b.afterPhoto,
+    customerConfirmed: b.status === 'completed',
+  };
+}
+
+function toMechanic(m: ApiMechanic): Mechanic {
+  return {
+    id: m.id,
+    name: m.name,
+    phone: m.phone,
+    city: m.city,
+    rating: m.rating,
+    jobsCompleted: m.jobsCompleted,
+    verification: m.verification === 'suspended' ? 'rejected' : m.verification,
+    skills: m.skills,
+    serviceRadiusKm: m.serviceRadiusKm,
+    online: m.online,
+    avatarInitials: m.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase(),
+  };
+}
 
 interface AppState {
   authenticated: boolean;
   mechanic: Mechanic;
   jobs: Job[];
 
-  login: () => void;
+  requestOtp: (phone: string) => Promise<string>;
+  verifyOtp: (phone: string, otp: string, name?: string) => Promise<void>;
+  register: (name: string, phone: string, city: string) => Promise<void>;
   logout: () => void;
-  register: (name: string, phone: string, city: string) => void;
   setOnline: (online: boolean) => void;
 
-  acceptJob: (jobId: string) => void;
+  refreshJobs: () => Promise<void>;
+  acceptJob: (jobId: string) => Promise<void>;
   declineJob: (jobId: string) => void;
-  advanceStatus: (jobId: string, status: JobStatus) => void;
-  toggleChecklistItem: (jobId: string, itemId: string) => void;
-  addIssue: (jobId: string, title: string, price: number) => void;
-  removeIssue: (jobId: string, issueId: string) => void;
-  requestApproval: (jobId: string) => void;
-  simulateCustomerDecision: (jobId: string, approve: boolean) => void;
-  setPhoto: (jobId: string, kind: 'before' | 'after') => void;
-  confirmCompletion: (jobId: string) => void;
+  advanceStatus: (jobId: string, status: JobStatus) => Promise<void>;
+  toggleChecklistItem: (jobId: string, itemId: string) => Promise<void>;
+  addIssue: (jobId: string, title: string, price: number) => Promise<void>;
+  removeIssue: (jobId: string, issueId: string) => Promise<void>;
+  requestApproval: (jobId: string) => Promise<void>;
+  setPhoto: (jobId: string, kind: 'before' | 'after') => Promise<void>;
+  confirmCompletion: (jobId: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppState | undefined>(undefined);
 
-let issueCounter = 0;
-
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [authenticated, setAuthenticated] = useState(false);
   const [mechanic, setMechanic] = useState<Mechanic>(seedMechanic);
-  const [jobs, setJobs] = useState<Job[]>(initialJobs);
+  const [jobs, setJobs] = useState<Job[]>([]);
 
-  const patchJob = useCallback(
-    (jobId: string, updater: (job: Job) => Job) => {
-      setJobs((prev) => prev.map((j) => (j.id === jobId ? updater(j) : j)));
+  const refreshJobs = useCallback(async () => {
+    const [mine, available] = await Promise.all([
+      api.get<ApiBooking[]>('/bookings'),
+      api.get<ApiBooking[]>('/bookings?scope=available').catch(() => [] as ApiBooking[]),
+    ]);
+    const seen = new Set<string>();
+    const merged: Job[] = [];
+    for (const b of [...mine, ...available]) {
+      if (seen.has(b.id)) continue;
+      seen.add(b.id);
+      merged.push(toJob(b));
+    }
+    setJobs(merged);
+  }, []);
+
+  const loadProfileAndJobs = useCallback(async () => {
+    const m = await api.get<ApiMechanic>('/mechanics/me');
+    setMechanic(toMechanic(m));
+    if (m.verification === 'verified') await refreshJobs();
+  }, [refreshJobs]);
+
+  const requestOtp = useCallback(async (phone: string) => {
+    const r = await api.post<{ devOtp: string }>('/auth/otp/request', { phone });
+    return r.devOtp;
+  }, []);
+
+  const verifyOtp = useCallback(
+    async (phone: string, otp: string, name?: string) => {
+      const r = await api.post<{ token: string }>('/auth/otp/verify', {
+        phone, otp, role: 'mechanic', name,
+      });
+      setToken(r.token);
+      setAuthenticated(true);
+      await loadProfileAndJobs();
     },
-    [],
+    [loadProfileAndJobs],
   );
 
-  const login = useCallback(() => setAuthenticated(true), []);
-  const logout = useCallback(() => setAuthenticated(false), []);
+  // Registration reuses the mechanic OTP path (dev OTP), creating an in_review
+  // profile that is gated until operations verifies it.
+  const register = useCallback(
+    async (name: string, phone: string, _city: string) => {
+      await verifyOtp(phone, '123456', name);
+    },
+    [verifyOtp],
+  );
 
-  const register = useCallback((name: string, phone: string, city: string) => {
-    setMechanic((prev) => ({
-      ...prev,
-      name: name || prev.name,
-      phone: phone || prev.phone,
-      city: city || prev.city,
-      verification: 'in_review',
-      jobsCompleted: 0,
-      rating: 0,
-      avatarInitials: name
-        ? name
-            .split(' ')
-            .map((p) => p[0])
-            .slice(0, 2)
-            .join('')
-            .toUpperCase()
-        : prev.avatarInitials,
-    }));
-    setAuthenticated(true);
+  const logout = useCallback(() => {
+    setToken(null);
+    setAuthenticated(false);
+    setJobs([]);
   }, []);
 
   const setOnline = useCallback((online: boolean) => {
     setMechanic((prev) => ({ ...prev, online }));
+    api.patch('/mechanics/me', { online }).catch(() => {});
+  }, []);
+
+  const applyBooking = useCallback((b: ApiBooking) => {
+    const job = toJob(b);
+    setJobs((prev) => {
+      const exists = prev.some((j) => j.id === job.id);
+      return exists ? prev.map((j) => (j.id === job.id ? job : j)) : [job, ...prev];
+    });
   }, []);
 
   const acceptJob = useCallback(
-    (jobId: string) => patchJob(jobId, (j) => ({ ...j, status: 'accepted' })),
-    [patchJob],
+    async (jobId: string) => {
+      const b = await api.post<ApiBooking>(`/bookings/${jobId}/accept`);
+      applyBooking(b);
+    },
+    [applyBooking],
   );
 
-  const declineJob = useCallback(
-    (jobId: string) => patchJob(jobId, (j) => ({ ...j, status: 'declined' })),
-    [patchJob],
-  );
+  // No backend "decline"; drop the offer from the local queue.
+  const declineJob = useCallback((jobId: string) => {
+    setJobs((prev) => prev.filter((j) => j.id !== jobId));
+  }, []);
 
   const advanceStatus = useCallback(
-    (jobId: string, status: JobStatus) =>
-      patchJob(jobId, (j) => ({ ...j, status })),
-    [patchJob],
+    async (jobId: string, status: JobStatus) => {
+      const apiStatus = status === 'in_progress' ? 'in_service' : status;
+      const b = await api.post<ApiBooking>(`/bookings/${jobId}/status`, { status: apiStatus });
+      applyBooking(b);
+    },
+    [applyBooking],
   );
 
   const toggleChecklistItem = useCallback(
-    (jobId: string, itemId: string) =>
-      patchJob(jobId, (j) => ({
-        ...j,
-        checklist: j.checklist.map((c) =>
-          c.id === itemId ? { ...c, done: !c.done } : c,
-        ),
-      })),
-    [patchJob],
+    async (jobId: string, itemId: string) => {
+      const job = jobs.find((j) => j.id === jobId);
+      const item = job?.checklist.find((c) => c.id === itemId);
+      const b = await api.patch<ApiBooking>(`/bookings/${jobId}/checklist`, {
+        itemId, done: item ? !item.done : true,
+      });
+      applyBooking(b);
+    },
+    [applyBooking, jobs],
   );
 
   const addIssue = useCallback(
-    (jobId: string, title: string, price: number) =>
-      patchJob(jobId, (j) => {
-        const issue: AdditionalIssue = {
-          id: `ai-${++issueCounter}`,
-          title,
-          price,
-          approved: 'pending',
-        };
-        return { ...j, additionalIssues: [...j.additionalIssues, issue] };
-      }),
-    [patchJob],
+    async (jobId: string, title: string, price: number) => {
+      const b = await api.post<ApiBooking>(`/bookings/${jobId}/extras`, { title, price });
+      applyBooking(b);
+    },
+    [applyBooking],
   );
 
   const removeIssue = useCallback(
-    (jobId: string, issueId: string) =>
-      patchJob(jobId, (j) => ({
-        ...j,
-        additionalIssues: j.additionalIssues.filter((i) => i.id !== issueId),
-      })),
-    [patchJob],
+    async (jobId: string, issueId: string) => {
+      const b = await api.del<ApiBooking>(`/bookings/${jobId}/extras/${issueId}`);
+      applyBooking(b);
+    },
+    [applyBooking],
   );
 
   const requestApproval = useCallback(
-    (jobId: string) =>
-      patchJob(jobId, (j) => ({ ...j, status: 'awaiting_approval' })),
-    [patchJob],
-  );
-
-  // Stand-in for the customer app responding to the approval request (FR-09/FR-21).
-  const simulateCustomerDecision = useCallback(
-    (jobId: string, approve: boolean) =>
-      patchJob(jobId, (j) => ({
-        ...j,
-        status: 'in_progress',
-        additionalIssues: j.additionalIssues.map((i) =>
-          i.approved === 'pending'
-            ? { ...i, approved: approve ? 'approved' : 'rejected' }
-            : i,
-        ),
-      })),
-    [patchJob],
+    async (jobId: string) => {
+      const b = await api.post<ApiBooking>(`/bookings/${jobId}/request-approval`);
+      applyBooking(b);
+    },
+    [applyBooking],
   );
 
   const setPhoto = useCallback(
-    (jobId: string, kind: 'before' | 'after') =>
-      patchJob(jobId, (j) => ({
-        ...j,
-        beforePhotoTaken: kind === 'before' ? true : j.beforePhotoTaken,
-        afterPhotoTaken: kind === 'after' ? true : j.afterPhotoTaken,
-      })),
-    [patchJob],
+    async (jobId: string, kind: 'before' | 'after') => {
+      const b = await api.post<ApiBooking>(`/bookings/${jobId}/photo`, { kind });
+      applyBooking(b);
+    },
+    [applyBooking],
   );
 
   const confirmCompletion = useCallback(
-    (jobId: string) => {
-      patchJob(jobId, (j) => ({
-        ...j,
-        status: 'completed',
-        customerConfirmed: true,
-      }));
-      setMechanic((prev) => ({
-        ...prev,
-        jobsCompleted: prev.jobsCompleted + 1,
-      }));
+    async (jobId: string) => {
+      const b = await api.post<ApiBooking>(`/bookings/${jobId}/complete`);
+      applyBooking(b);
+      setMechanic((prev) => ({ ...prev, jobsCompleted: prev.jobsCompleted + 1 }));
     },
-    [patchJob],
+    [applyBooking],
   );
 
   const value = useMemo<AppState>(
     () => ({
-      authenticated,
-      mechanic,
-      jobs,
-      login,
-      logout,
-      register,
-      setOnline,
-      acceptJob,
-      declineJob,
-      advanceStatus,
-      toggleChecklistItem,
-      addIssue,
-      removeIssue,
-      requestApproval,
-      simulateCustomerDecision,
-      setPhoto,
-      confirmCompletion,
+      authenticated, mechanic, jobs,
+      requestOtp, verifyOtp, register, logout, setOnline,
+      refreshJobs, acceptJob, declineJob, advanceStatus, toggleChecklistItem,
+      addIssue, removeIssue, requestApproval, setPhoto, confirmCompletion,
     }),
     [
-      authenticated,
-      mechanic,
-      jobs,
-      login,
-      logout,
-      register,
-      setOnline,
-      acceptJob,
-      declineJob,
-      advanceStatus,
-      toggleChecklistItem,
-      addIssue,
-      removeIssue,
-      requestApproval,
-      simulateCustomerDecision,
-      setPhoto,
-      confirmCompletion,
+      authenticated, mechanic, jobs,
+      requestOtp, verifyOtp, register, logout, setOnline,
+      refreshJobs, acceptJob, declineJob, advanceStatus, toggleChecklistItem,
+      addIssue, removeIssue, requestApproval, setPhoto, confirmCompletion,
     ],
   );
 
