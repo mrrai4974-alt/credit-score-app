@@ -1,6 +1,8 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { useAuth } from './auth';
+import { Login } from './pages/Login';
 import { Layout } from './components/Layout';
 import { Brands } from './pages/Brands';
 import { Catalog } from './pages/Catalog';
@@ -14,7 +16,13 @@ import { Memberships } from './pages/Memberships';
 import { Orders } from './pages/Orders';
 import { Promotions } from './pages/Promotions';
 
-const App: React.FC = () => (
+const App: React.FC = () => {
+  const { authed, loading } = useAuth();
+  if (loading) {
+    return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', color: '#6b7688' }}>Loading…</div>;
+  }
+  if (!authed) return <Login />;
+  return (
   <Layout>
     <Routes>
       <Route path="/" element={<Dashboard />} />
@@ -30,6 +38,7 @@ const App: React.FC = () => (
       <Route path="/content" element={<Content />} />
     </Routes>
   </Layout>
-);
+  );
+};
 
 export default App;

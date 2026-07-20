@@ -1,26 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 
-import { cities, disputes, orders } from '../data/mockData';
+import { api } from '../api';
+import { useAuth } from '../auth';
+import { cities } from '../data/mockData';
 
 interface NavEntry {
   to: string;
   label: string;
   icon: string;
-  badge?: number;
+  badgeKey?: 'unassigned' | 'disputes';
 }
 
 const SECTIONS: { title: string; items: NavEntry[] }[] = [
-  {
-    title: 'Overview',
-    items: [{ to: '/', label: 'Dashboard', icon: '📊' }],
-  },
+  { title: 'Overview', items: [{ to: '/', label: 'Dashboard', icon: '📊' }] },
   {
     title: 'Operations',
     items: [
-      { to: '/orders', label: 'Orders & Dispatch', icon: '🧭', badge: orders.filter((o) => o.status === 'unassigned').length },
+      { to: '/orders', label: 'Orders & Dispatch', icon: '🧭', badgeKey: 'unassigned' },
       { to: '/mechanics', label: 'Mechanics', icon: '🧑‍🔧' },
-      { to: '/disputes', label: 'Disputes', icon: '⚖️', badge: disputes.filter((d) => d.status === 'open').length },
+      { to: '/disputes', label: 'Disputes', icon: '⚖️', badgeKey: 'disputes' },
     ],
   },
   {
@@ -39,10 +38,7 @@ const SECTIONS: { title: string; items: NavEntry[] }[] = [
       { to: '/promotions', label: 'Promotions', icon: '🏷️' },
     ],
   },
-  {
-    title: 'Marketing',
-    items: [{ to: '/content', label: 'Content Pages', icon: '📝' }],
-  },
+  { title: 'Marketing', items: [{ to: '/content', label: 'Content Pages', icon: '📝' }] },
 ];
 
 const TITLES: Record<string, string> = {
@@ -61,6 +57,18 @@ const TITLES: Record<string, string> = {
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { pathname } = useLocation();
+  const { name, logout } = useAuth();
+  const [badges, setBadges] = useState<{ unassigned: number; disputes: number }>({ unassigned: 0, disputes: 0 });
+
+  useEffect(() => {
+    api
+      .get<{ kpis: { unassigned: number }; openDisputes: number }>('/analytics/dashboard')
+      .then((d) => setBadges({ unassigned: d.kpis.unassigned, disputes: d.openDisputes }))
+      .catch(() => {});
+  }, [pathname]);
+
+  const initials = name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase() || 'OP';
+
   return (
     <div className="app">
       <aside className="sidebar">
@@ -75,18 +83,21 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         {SECTIONS.map((sec) => (
           <div key={sec.title}>
             <div className="nav-section">{sec.title}</div>
-            {sec.items.map((it) => (
-              <NavLink
-                key={it.to}
-                to={it.to}
-                end={it.to === '/'}
-                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-              >
-                <span className="nav-ico">{it.icon}</span>
-                {it.label}
-                {it.badge ? <span className="nav-badge">{it.badge}</span> : null}
-              </NavLink>
-            ))}
+            {sec.items.map((it) => {
+              const badge = it.badgeKey ? badges[it.badgeKey] : 0;
+              return (
+                <NavLink
+                  key={it.to}
+                  to={it.to}
+                  end={it.to === '/'}
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                >
+                  <span className="nav-ico">{it.icon}</span>
+                  {it.label}
+                  {badge ? <span className="nav-badge">{badge}</span> : null}
+                </NavLink>
+              );
+            })}
           </div>
         ))}
       </aside>
@@ -100,7 +111,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               <option key={c}>{c}</option>
             ))}
           </select>
-          <div className="avatar">OP</div>
+          <button className="btn outline sm" onClick={logout}>Log out</button>
+          <div className="avatar">{initials}</div>
         </header>
         {children}
       </div>
