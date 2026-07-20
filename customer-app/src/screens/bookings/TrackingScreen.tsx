@@ -48,8 +48,7 @@ export const TrackingScreen: React.FC<{
 }> = ({ bookingId, onBack }) => {
   const {
     bookings,
-    advanceBooking,
-    proposePendingExtra,
+    refreshBookings,
     decideExtra,
     payBooking,
     rateBooking,
@@ -159,26 +158,14 @@ export const TrackingScreen: React.FC<{
             );
           })}
 
-          {/* Demo control to advance the flow */}
-          {b.status !== 'completed' && b.status !== 'awaiting_approval' && (
+          {/* Status is driven by the mechanic app; pull the latest here. */}
+          {b.status !== 'completed' && (
             <Button
-              title="▶ Simulate next step"
+              title="↻ Refresh status"
               variant="outline"
-              onPress={() => advanceBooking(b.id)}
+              onPress={() => refreshBookings()}
               style={{ marginTop: spacing.md }}
               full
-            />
-          )}
-          {b.status === 'in_service' && (
-            <Button
-              title="🔧 Simulate: mechanic finds an extra issue"
-              variant="ghost"
-              onPress={() =>
-                proposePendingExtra(b.id, {
-                  title: 'Brake pad replacement (pair)',
-                  price: 450,
-                })
-              }
             />
           )}
         </Card>

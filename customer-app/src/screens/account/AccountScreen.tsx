@@ -13,7 +13,7 @@ export const AccountScreen: React.FC<{
   onNavigate: (route: AccountRoute) => void;
   onOpenMembership: () => void;
 }> = ({ onNavigate, onOpenMembership }) => {
-  const { name, city, vehicles, bookings, membershipId, authenticated, login, logout } =
+  const { name, city, vehicles, bookings, membershipId, authenticated, exitGuest, logout } =
     useApp();
   const plan = membershipPlans.find((p) => p.id === membershipId);
   const initials = name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
@@ -33,7 +33,7 @@ export const AccountScreen: React.FC<{
           <Card>
             <Text style={styles.guestTitle}>You're browsing as a guest</Text>
             <Text style={styles.guestSub}>Log in to book services and track them.</Text>
-            <Button title="Login / Sign up" onPress={() => login()} style={{ marginTop: spacing.md }} full />
+            <Button title="Login / Sign up" onPress={exitGuest} style={{ marginTop: spacing.md }} full />
           </Card>
         ) : (
           <Card>

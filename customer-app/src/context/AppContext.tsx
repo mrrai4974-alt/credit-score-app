@@ -6,18 +6,84 @@ import React, {
   useState,
 } from 'react';
 
-import {
-  membershipPlans,
-  promoCodes,
-  seedBookings,
-  seedVehicles,
-} from '../data/catalog';
-import {
-  Booking,
-  ExtraItem,
-  Service,
-  Vehicle,
-} from '../types';
+import { api, setToken } from '../api';
+import { services as catalogServices } from '../data/catalog';
+import { Booking, Service, Vehicle } from '../types';
+
+/* ------------------------------------------------- API response shapes */
+
+interface ApiExtra {
+  id: string;
+  title: string;
+  price: number;
+  approved: 'pending' | 'approved' | 'rejected';
+}
+interface ApiBooking {
+  id: string;
+  code: string;
+  status: Booking['status'];
+  serviceId: string;
+  serviceName: string;
+  category: Service['category'];
+  basePrice: number;
+  inspectionPoints: number;
+  estimatedDurationMin: number;
+  vehicle: string;
+  address: string;
+  slot: string;
+  extras: ApiExtra[];
+  mechanicName: string | null;
+  paymentMethod: 'online' | 'cod';
+  paid: boolean;
+  promoCode?: string;
+  discount: number;
+  rating?: number;
+  warrantyDays: number;
+  createdAt: string;
+}
+
+/** Map a backend booking into the app's existing Booking shape. */
+function fromApi(b: ApiBooking): Booking {
+  const svc: Service =
+    catalogServices.find((s) => s.id === b.serviceId) ?? {
+      id: b.serviceId,
+      name: b.serviceName,
+      category: b.category,
+      price: b.basePrice,
+      durationMin: b.estimatedDurationMin,
+      inspectionPoints: b.inspectionPoints,
+      description: '',
+      highlights: [],
+    };
+  const [brand, ...rest] = (b.vehicle || '').split(' ');
+  const vehicle: Vehicle = {
+    id: '',
+    brand: brand || b.vehicle,
+    model: rest.join(' '),
+    registration: '',
+    type: b.category === 'EV' ? 'EV' : 'Petrol',
+  };
+  return {
+    id: b.id,
+    code: b.code,
+    service: svc,
+    vehicle,
+    slot: b.slot,
+    address: b.address,
+    status: b.status,
+    mechanicName: b.mechanicName ?? undefined,
+    mechanicRating: b.mechanicName ? 4.7 : undefined,
+    paymentMethod: b.paymentMethod,
+    paid: b.paid,
+    promoCode: b.promoCode,
+    discount: b.discount,
+    extras: b.extras.filter((e) => e.approved === 'approved').map((e) => ({ id: e.id, title: e.title, price: e.price })),
+    pendingExtras: b.extras.filter((e) => e.approved === 'pending').map((e) => ({ id: e.id, title: e.title, price: e.price })),
+    rating: b.rating,
+    warrantyDays: b.warrantyDays,
+    createdAt: b.createdAt,
+  };
+}
 
 interface BookingDraft {
   service: Service;
@@ -31,198 +97,197 @@ interface BookingDraft {
 
 interface AppState {
   authenticated: boolean;
+  guest: boolean;
   name: string;
   city: string;
   vehicles: Vehicle[];
   bookings: Booking[];
   membershipId: string | null;
 
-  login: (name?: string) => void;
+  requestOtp: (phone: string) => Promise<string>;
+  verifyOtp: (phone: string, otp: string, name?: string) => Promise<void>;
+  enterGuest: () => void;
+  exitGuest: () => void;
   logout: () => void;
   setCity: (city: string) => void;
 
-  addVehicle: (v: Omit<Vehicle, 'id'>) => void;
-  removeVehicle: (id: string) => void;
+  addVehicle: (v: Omit<Vehicle, 'id'>) => Promise<void>;
+  removeVehicle: (id: string) => Promise<void>;
 
-  applyPromo: (code: string) => number | null;
-  createBooking: (draft: BookingDraft) => Booking;
-  advanceBooking: (id: string) => void;
-  proposePendingExtra: (id: string, item: Omit<ExtraItem, 'id'>) => void;
-  decideExtra: (bookingId: string, extraId: string, approve: boolean) => void;
-  payBooking: (id: string) => void;
-  rateBooking: (id: string, rating: number) => void;
-  subscribe: (planId: string) => void;
+  applyPromo: (code: string, base: number) => Promise<number | null>;
+  createBooking: (draft: BookingDraft) => Promise<Booking>;
+  refreshBookings: () => Promise<void>;
+  decideExtra: (bookingId: string, extraId: string, approve: boolean) => Promise<void>;
+  payBooking: (id: string) => Promise<void>;
+  rateBooking: (id: string, rating: number) => Promise<void>;
+  subscribe: (planId: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppState | undefined>(undefined);
 
-let idc = 100;
-const nextId = (p: string) => `${p}-${++idc}`;
-
-const STATUS_FLOW: Booking['status'][] = [
-  'booked',
-  'assigned',
-  'en_route',
-  'in_service',
-  'completed',
-];
-
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [authenticated, setAuthenticated] = useState(false);
+  const [guest, setGuest] = useState(false);
   const [name, setName] = useState('Rider');
   const [city, setCity] = useState('Bengaluru');
-  const [vehicles, setVehicles] = useState<Vehicle[]>(seedVehicles);
-  const [bookings, setBookings] = useState<Booking[]>(seedBookings);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [membershipId, setMembershipId] = useState<string | null>(null);
 
-  const login = useCallback((n?: string) => {
-    if (n && n.trim()) setName(n.trim());
-    setAuthenticated(true);
-  }, []);
-  const logout = useCallback(() => setAuthenticated(false), []);
-
-  const addVehicle = useCallback((v: Omit<Vehicle, 'id'>) => {
-    setVehicles((prev) => [...prev, { ...v, id: nextId('v') }]);
+  const refreshBookings = useCallback(async () => {
+    const list = await api.get<ApiBooking[]>('/bookings');
+    setBookings(list.map(fromApi));
   }, []);
 
-  const removeVehicle = useCallback((id: string) => {
+  const loadAll = useCallback(async () => {
+    const [veh] = await Promise.all([
+      api.get<Vehicle[]>('/vehicles'),
+      refreshBookings(),
+    ]);
+    setVehicles(veh);
+    try {
+      const m = await api.get<{ planId: string | null }>('/memberships/me');
+      setMembershipId(m.planId);
+    } catch {
+      /* ignore */
+    }
+  }, [refreshBookings]);
+
+  const requestOtp = useCallback(async (phone: string) => {
+    const r = await api.post<{ devOtp: string }>('/auth/otp/request', { phone });
+    return r.devOtp;
+  }, []);
+
+  const verifyOtp = useCallback(
+    async (phone: string, otp: string, n?: string) => {
+      const r = await api.post<{ token: string; user: { name: string; city: string } }>(
+        '/auth/otp/verify',
+        { phone, otp, role: 'customer', name: n, city },
+      );
+      setToken(r.token);
+      setName(r.user.name);
+      if (r.user.city) setCity(r.user.city);
+      setAuthenticated(true);
+      setGuest(false);
+      await loadAll();
+    },
+    [city, loadAll],
+  );
+
+  const enterGuest = useCallback(() => setGuest(true), []);
+  const exitGuest = useCallback(() => setGuest(false), []);
+  const logout = useCallback(() => {
+    setToken(null);
+    setAuthenticated(false);
+    setGuest(false);
+    setVehicles([]);
+    setBookings([]);
+    setMembershipId(null);
+  }, []);
+
+  const addVehicle = useCallback(async (v: Omit<Vehicle, 'id'>) => {
+    const created = await api.post<Vehicle>('/vehicles', v);
+    setVehicles((prev) => [...prev, created]);
+  }, []);
+
+  const removeVehicle = useCallback(async (id: string) => {
+    await api.del(`/vehicles/${id}`);
     setVehicles((prev) => prev.filter((v) => v.id !== id));
   }, []);
 
-  const applyPromo = useCallback((code: string): number | null => {
-    const key = code.trim().toUpperCase();
-    return key in promoCodes ? promoCodes[key] : null;
+  const applyPromo = useCallback(async (code: string, base: number): Promise<number | null> => {
+    try {
+      const r = await api.post<{ type: 'flat' | 'percent'; value: number; cap?: number }>(
+        '/promos/validate',
+        { code },
+      );
+      if (r.type === 'flat') return r.value;
+      const raw = Math.round((base * r.value) / 100);
+      return r.cap ? Math.min(r.cap, raw) : raw;
+    } catch {
+      return null;
+    }
   }, []);
 
-  const patch = useCallback(
-    (id: string, updater: (b: Booking) => Booking) =>
-      setBookings((prev) => prev.map((b) => (b.id === id ? updater(b) : b))),
-    [],
-  );
+  const createBooking = useCallback(async (draft: BookingDraft): Promise<Booking> => {
+    const created = await api.post<ApiBooking>('/bookings', {
+      serviceId: draft.service.id,
+      vehicleId: draft.vehicle.id,
+      slot: draft.slot,
+      address: draft.address,
+      paymentMethod: draft.paymentMethod,
+      promoCode: draft.promoCode,
+      discount: draft.discount,
+    });
+    const mapped = fromApi(created);
+    setBookings((prev) => [mapped, ...prev]);
+    return mapped;
+  }, []);
 
-  const createBooking = useCallback(
-    (draft: BookingDraft): Booking => {
-      const plan = membershipPlans.find((p) => p.id === membershipId);
-      const booking: Booking = {
-        id: nextId('b'),
-        code: `DBS-${47200 + idc}`,
-        service: draft.service,
-        vehicle: draft.vehicle,
-        slot: draft.slot,
-        address: draft.address,
-        status: 'booked',
-        paymentMethod: draft.paymentMethod,
-        paid: false,
-        promoCode: draft.promoCode,
-        discount: draft.discount,
-        extras: [],
-        pendingExtras: [],
-        warrantyDays: plan?.id === 'p-plus' || plan?.id === 'p-pro' ? 15 : 10,
-        createdAt: 'Today',
-      };
-      setBookings((prev) => [booking, ...prev]);
-      return booking;
-    },
-    [membershipId],
-  );
-
-  const advanceBooking = useCallback(
-    (id: string) =>
-      patch(id, (b) => {
-        if (b.status === 'awaiting_approval') return b;
-        const i = STATUS_FLOW.indexOf(b.status);
-        if (i < 0 || i >= STATUS_FLOW.length - 1) return b;
-        const next = STATUS_FLOW[i + 1];
-        return {
-          ...b,
-          status: next,
-          mechanicName: next === 'assigned' ? 'Ravi Kumar' : b.mechanicName,
-          mechanicRating: next === 'assigned' ? 4.7 : b.mechanicRating,
-        };
-      }),
-    [patch],
-  );
-
-  const proposePendingExtra = useCallback(
-    (id: string, item: Omit<ExtraItem, 'id'>) =>
-      patch(id, (b) => ({
-        ...b,
-        status: 'awaiting_approval',
-        pendingExtras: [...b.pendingExtras, { ...item, id: nextId('x') }],
-      })),
-    [patch],
-  );
+  const applyResult = useCallback((b: ApiBooking) => {
+    const mapped = fromApi(b);
+    setBookings((prev) => prev.map((x) => (x.id === mapped.id ? mapped : x)));
+  }, []);
 
   const decideExtra = useCallback(
-    (bookingId: string, extraId: string, approve: boolean) =>
-      patch(bookingId, (b) => {
-        const item = b.pendingExtras.find((e) => e.id === extraId);
-        const pendingExtras = b.pendingExtras.filter((e) => e.id !== extraId);
-        return {
-          ...b,
-          pendingExtras,
-          extras: approve && item ? [...b.extras, item] : b.extras,
-          status: pendingExtras.length === 0 ? 'in_service' : 'awaiting_approval',
-        };
-      }),
-    [patch],
+    async (bookingId: string, extraId: string, approve: boolean) => {
+      const b = await api.post<ApiBooking>(`/bookings/${bookingId}/extras/${extraId}/decision`, { approve });
+      applyResult(b);
+    },
+    [applyResult],
   );
 
   const payBooking = useCallback(
-    (id: string) => patch(id, (b) => ({ ...b, paid: true })),
-    [patch],
+    async (id: string) => {
+      const b = await api.post<ApiBooking>(`/bookings/${id}/pay`);
+      applyResult(b);
+    },
+    [applyResult],
   );
 
   const rateBooking = useCallback(
-    (id: string, rating: number) => patch(id, (b) => ({ ...b, rating })),
-    [patch],
+    async (id: string, rating: number) => {
+      const b = await api.post<ApiBooking>(`/bookings/${id}/rate`, { rating });
+      applyResult(b);
+    },
+    [applyResult],
   );
 
-  const subscribe = useCallback((planId: string) => setMembershipId(planId), []);
+  const subscribe = useCallback(async (planId: string) => {
+    await api.post(`/plans/${planId}/subscribe`);
+    setMembershipId(planId);
+  }, []);
 
   const value = useMemo<AppState>(
     () => ({
       authenticated,
+      guest,
       name,
       city,
       vehicles,
       bookings,
       membershipId,
-      login,
+      requestOtp,
+      verifyOtp,
+      enterGuest,
+      exitGuest,
       logout,
       setCity,
       addVehicle,
       removeVehicle,
       applyPromo,
       createBooking,
-      advanceBooking,
-      proposePendingExtra,
+      refreshBookings,
       decideExtra,
       payBooking,
       rateBooking,
       subscribe,
     }),
     [
-      authenticated,
-      name,
-      city,
-      vehicles,
-      bookings,
-      membershipId,
-      login,
-      logout,
-      addVehicle,
-      removeVehicle,
-      applyPromo,
-      createBooking,
-      advanceBooking,
-      proposePendingExtra,
-      decideExtra,
-      payBooking,
-      rateBooking,
-      subscribe,
+      authenticated, guest, name, city, vehicles, bookings, membershipId,
+      requestOtp, verifyOtp, enterGuest, exitGuest, logout,
+      addVehicle, removeVehicle, applyPromo, createBooking, refreshBookings,
+      decideExtra, payBooking, rateBooking, subscribe,
     ],
   );
 

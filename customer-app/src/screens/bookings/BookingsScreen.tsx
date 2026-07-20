@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -11,7 +11,11 @@ import { inr, withGst } from '../../utils/format';
 export const BookingsScreen: React.FC<{
   onOpen: (bookingId: string) => void;
 }> = ({ onOpen }) => {
-  const { bookings } = useApp();
+  const { bookings, authenticated, refreshBookings } = useApp();
+
+  useEffect(() => {
+    if (authenticated) refreshBookings().catch(() => {});
+  }, [authenticated, refreshBookings]);
   const active = bookings.filter((b) => b.status !== 'completed' && b.status !== 'cancelled');
   const past = bookings.filter((b) => b.status === 'completed' || b.status === 'cancelled');
 

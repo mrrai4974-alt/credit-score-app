@@ -55,8 +55,8 @@ export const BookingScreen: React.FC<{
     [base, gst, discount],
   );
 
-  const tryPromo = () => {
-    const value = applyPromo(promo);
+  const tryPromo = async () => {
+    const value = await applyPromo(promo, base);
     if (value === null) {
       Alert.alert('Invalid code', 'That promo code is not valid.');
       setDiscount(0);
@@ -68,41 +68,49 @@ export const BookingScreen: React.FC<{
     Alert.alert('Promo applied', `You saved ${inr(value)}!`);
   };
 
-  const saveVehicle = () => {
+  const saveVehicle = async () => {
     if (!newBrand || !newModel) {
       Alert.alert('Add vehicle', 'Enter at least brand and model.');
       return;
     }
     const isEv = brands.find((b) => b.name === newBrand)?.type === 'EV';
-    addVehicle({
-      brand: newBrand,
-      model: newModel,
-      registration: newReg || 'Not provided',
-      type: isEv ? 'EV' : 'Petrol',
-    });
-    setShowAdd(false);
-    setNewBrand('');
-    setNewModel('');
-    setNewReg('');
+    try {
+      await addVehicle({
+        brand: newBrand,
+        model: newModel,
+        registration: newReg || 'Not provided',
+        type: isEv ? 'EV' : 'Petrol',
+      });
+      setShowAdd(false);
+      setNewBrand('');
+      setNewModel('');
+      setNewReg('');
+    } catch (e) {
+      Alert.alert('Add vehicle', (e as Error).message);
+    }
   };
 
-  const confirm = () => {
+  const confirm = async () => {
     const vehicle = vehicles.find((v) => v.id === vehicleId);
     if (!vehicle) return Alert.alert('Booking', 'Please select a vehicle.');
     if (!slot) return Alert.alert('Booking', 'Please choose a time slot.');
     if (address.trim().length < 6)
       return Alert.alert('Booking', 'Please enter your service address.');
 
-    const booking = createBooking({
-      service,
-      vehicle,
-      slot,
-      address: `${address.trim()}, ${city}`,
-      paymentMethod: payment,
-      promoCode: appliedCode,
-      discount,
-    });
-    onConfirmed(booking);
+    try {
+      const booking = await createBooking({
+        service,
+        vehicle,
+        slot,
+        address: `${address.trim()}, ${city}`,
+        paymentMethod: payment,
+        promoCode: appliedCode,
+        discount,
+      });
+      onConfirmed(booking);
+    } catch (e) {
+      Alert.alert('Booking failed', (e as Error).message + '\n\nPlease log in from the Account tab to book.');
+    }
   };
 
   return (

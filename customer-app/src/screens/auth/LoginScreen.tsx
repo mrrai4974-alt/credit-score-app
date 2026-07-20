@@ -16,14 +16,39 @@ import { colors, font, radius, spacing } from '../../theme/theme';
 
 /** Registration/login via mobile OTP; guest browsing allowed (FR-01). */
 export const LoginScreen: React.FC<{ onGuest: () => void }> = ({ onGuest }) => {
-  const { login } = useApp();
+  const { requestOtp, verifyOtp } = useApp();
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const sendOtp = () => {
-    if (phone.replace(/\D/g, '').length >= 10) setOtpSent(true);
+  const sendOtp = async () => {
+    if (phone.replace(/\D/g, '').length < 10) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const devOtp = await requestOtp(phone);
+      setOtp(devOtp); // prefilled in demo
+      setOtpSent(true);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const verify = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await verifyOtp(phone, otp, name);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -81,10 +106,12 @@ export const LoginScreen: React.FC<{ onGuest: () => void }> = ({ onGuest }) => {
             </>
           )}
 
+          {error && <Text style={styles.error}>{error}</Text>}
+
           {!otpSent ? (
-            <Button title="Send OTP" onPress={sendOtp} full />
+            <Button title={busy ? 'Sending…' : 'Send OTP'} onPress={sendOtp} disabled={busy} full />
           ) : (
-            <Button title="Verify & continue" onPress={() => login(name)} full />
+            <Button title={busy ? 'Verifying…' : 'Verify & continue'} onPress={verify} disabled={busy} full />
           )}
 
           <TouchableOpacity onPress={onGuest} style={styles.guest}>
@@ -141,4 +168,5 @@ const styles = StyleSheet.create({
   },
   guest: { alignItems: 'center', marginTop: spacing.lg },
   guestText: { color: colors.primary, fontWeight: '700', fontSize: font.body },
+  error: { color: colors.danger, fontSize: font.small, marginBottom: spacing.sm, textAlign: 'center' },
 });
