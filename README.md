@@ -1,24 +1,71 @@
-# Doorstep Two-Wheeler Service Platform — Mobile Apps
+# Doorstep Two-Wheeler Service Platform
 
-This repository contains all four client applications for the Doorstep
-Two-Wheeler Service Platform defined in the BRD *(Doorstep Two-Wheeler Service
-Platform, v1.0)*. All four share one platform brand, and together they cover the
-three-sided marketplace (customer, mechanic, operations) plus the public
-marketing site.
+This repository contains the full Doorstep Two-Wheeler Service Platform defined
+in the BRD *(Doorstep Two-Wheeler Service Platform, v1.0)*: four client
+applications plus a shared backend API. All clients share one platform brand and
+one data source, covering the three-sided marketplace (customer, mechanic,
+operations) plus the public marketing site.
 
-| Client | Audience | Stack | BRD section | Location |
+| Component | Audience | Stack | BRD section | Location |
 |---|---|---|---|---|
+| **Backend API** | All clients | Node + Express + TypeScript | §7 (shared) | [`backend/`](backend/) |
 | **Bike Mistri** | Field mechanic ("mistri") / partner | Expo RN (Android/iOS/web) | §7.2 (FR-17 … FR-24) | repo root (this README) |
 | **Doorstep Bike Service** | Customer / rider | Expo RN (Android/iOS/web) | §7.1 (FR-01 … FR-16) | [`customer-app/`](customer-app/) |
 | **Doorstep Ops** | Admin / operations team | Vite + React (web) | §7.3 (FR-25 … FR-35) | [`admin-console/`](admin-console/) |
 | **Marketing site** | Prospective customers & partners | Astro (static, SEO) | §5.1 | [`marketing-site/`](marketing-site/) |
 
-Each client is self-contained with its own `package.json`; run `npm install`
-inside its directory. See each client's README:
+Each component is self-contained with its own `package.json`; run `npm install`
+inside its directory. READMEs:
+[backend](backend/README.md) ·
 [customer-app](customer-app/README.md) ·
 [admin-console](admin-console/README.md) ·
-[marketing-site](marketing-site/README.md). The rest of this document covers the
-**Bike Mistri partner app** at the repo root.
+[marketing-site](marketing-site/README.md).
+
+## Connected architecture
+
+All clients talk to the **one backend API**, so a single `Booking` entity flows
+across the whole platform:
+
+```
+Customer app ──create booking──▶  ┌───────────────┐  ◀──assign / verify / resolve── Admin console
+Mechanic app ──accept / update──▶ │  Backend API  │  ◀──lead capture──────────────── Marketing site
+                                  │  (Express +   │
+                                  │  JWT + store) │
+                                  └───────────────┘
+```
+
+A booking created in the customer app immediately appears as an **Unassigned**
+order in the admin console and in the mechanic's **available jobs**; as the
+mechanic works it (en route → in service → complete) and the customer approves
+extras, pays and rates, every client and the admin dashboard reflect the same
+state. Marketing-site franchise/partner/callback forms POST leads that show up in
+the admin pipeline.
+
+Auth is JWT-based: customers and mechanics sign in with mobile OTP (dev OTP
+`123456`), admins with email + password (`admin@doorstepbike.example` /
+`admin123`). See [`backend/README.md`](backend/README.md) for the full endpoint
+list and data model.
+
+## Run the whole platform locally
+
+```bash
+# 1) Backend — start first (clients default to http://localhost:4000/api)
+cd backend && npm install && npm start        # http://localhost:4000
+
+# 2) Admin console (web)
+cd admin-console && npm install && npm run dev
+
+# 3) Marketing site (web)
+cd marketing-site && npm install && npm run dev
+
+# 4) Customer app / 5) Mechanic app (Expo)
+cd customer-app && npm install && npm run web  # or: npm start (Expo Go)
+npm install && npm run web                     # mechanic app is at the repo root
+```
+
+On a physical device, set each app's API base to your machine's LAN IP via the
+documented env var (`EXPO_PUBLIC_API_URL`, `VITE_API_URL`, `PUBLIC_API_URL`).
+The backend seeds demo data on first run; `POST /api/dev/reset` restores it.
 
 ---
 
