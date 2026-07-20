@@ -1,0 +1,36 @@
+---
+import { SITE, categories, cities } from '../data/site';
+---
+<footer class="footer">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <div class="logo" style="color:#fff;margin-bottom:10px">
+          <span class="logo-mark">🏍️</span><span>{SITE.name}</span>
+        </div>
+        <p style="max-width:280px">{SITE.tagline}. Certified mechanics, transparent pricing and a workmanship warranty — at your doorstep.</p>
+      </div>
+      <div>
+        <h4>Services</h4>
+        {categories.map((c) => <a href={`/services/${c.key}/`}>{c.name}</a>)}
+      </div>
+      <div>
+        <h4>Cities</h4>
+        {cities.slice(0, 6).map((c) => <a href={`/cities/${c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/`}>{c.name}</a>)}
+      </div>
+      <div>
+        <h4>Company</h4>
+        <a href="/about/">About & Media</a>
+        <a href="/membership/">Membership</a>
+        <a href="/franchise/">Franchise program</a>
+        <a href="/partner/">Partner with us</a>
+        <a href="/faqs/">FAQs</a>
+        <a href="/contact/">Contact</a>
+      </div>
+    </div>
+    <div class="bottom">
+      <span>© 2026 {SITE.name}. All rights reserved. {SITE.gstNote}</span>
+      <span>{SITE.phone} · {SITE.email}</span>
+    </div>
+  </div>
+</footer>

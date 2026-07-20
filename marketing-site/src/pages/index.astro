@@ -1,0 +1,164 @@
+---
+import Base from '../layouts/Base.astro';
+import CTA from '../components/CTA.astro';
+import FAQList from '../components/FAQList.astro';
+import { categories, comparison, faqs, plans, stats, steps, testimonials, SITE } from '../data/site';
+---
+<Base
+  title="Doorstep Bike Service — Certified Mechanics at Your Home"
+  description="Book doorstep two-wheeler service with certified mechanics, transparent upfront pricing and a workmanship warranty. Serving 50+ cities across India."
+>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap">
+      <span class="pill">Doorstep · 60-min service · 50+ cities</span>
+      <h1>{SITE.tagline}</h1>
+      <p class="sub">Certified mechanics come to your home or office. Transparent upfront pricing, genuine spares and a workmanship warranty — for petrol bikes, scooters and EVs.</p>
+      <div class="hero-cta">
+        <a href="/contact/" class="btn primary">Book a service</a>
+        <a href="/services/" class="btn light">See prices</a>
+      </div>
+      <div class="hero-trust">
+        <span><b>✓</b> Verified mechanics</span>
+        <span><b>✓</b> Upfront pricing</span>
+        <span><b>✓</b> 100% genuine spares</span>
+        <span><b>✓</b> Workmanship warranty</span>
+      </div>
+
+      <div class="statbar">
+        {stats.map((s) => (
+          <div class="s"><div class="v">{s.value}</div><div class="l">{s.label}</div></div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head center">
+        <span class="eyebrow">What we service</span>
+        <h2 class="h2">Service for every two-wheeler</h2>
+        <p class="lead">From everyday commuters to premium and electric bikes — five service categories, all at your doorstep.</p>
+      </div>
+      <div class="grid c3">
+        {categories.map((c) => (
+          <a href={`/services/${c.key}/`} class="card hover">
+            <div class="emoji">{c.emoji}</div>
+            <h3>{c.name}</h3>
+            <p>{c.blurb}</p>
+            <div style="margin-top:14px" class="pill muted">View services →</div>
+          </a>
+        ))}
+        <a href="/cities/" class="card hover" style="background:var(--navy);color:#fff;border:none">
+          <div class="emoji">📍</div>
+          <h3 style="color:#fff">Check your area</h3>
+          <p style="color:#b7c2d2">See if we serve your neighbourhood across 50+ cities.</p>
+          <div style="margin-top:14px" class="pill">Find your city →</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section alt">
+    <div class="wrap">
+      <div class="section-head center">
+        <span class="eyebrow">How it works</span>
+        <h2 class="h2">Six simple steps</h2>
+      </div>
+      <div class="steps">
+        {steps.map((s) => (
+          <div class="step card">
+            <div class="n">{s.n}</div>
+            <h3>{s.title}</h3>
+            <p>{s.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head center">
+        <span class="eyebrow">Why riders switch</span>
+        <h2 class="h2">Local garage vs authorised centre vs us</h2>
+      </div>
+      <div class="cmp-wrap">
+        <table class="cmp">
+          <thead>
+            <tr><th>Feature</th>{comparison.columns.map((c) => <th>{c}</th>)}</tr>
+          </thead>
+          <tbody>
+            {comparison.rows.map((r) => (
+              <tr>
+                <td>{r.feature}</td>
+                {r.values.map((v) => <td>{v ? <span class="yes">✓</span> : <span class="no">—</span>}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="section alt">
+    <div class="wrap">
+      <div class="section-head center">
+        <span class="eyebrow">Loved by riders</span>
+        <h2 class="h2">4.6★ average across 4,000+ services</h2>
+      </div>
+      <div class="grid c4">
+        {testimonials.map((t) => (
+          <div class="card">
+            <div class="stars">{'★'.repeat(t.rating)}<span style="color:#e3e8ef">{'★'.repeat(5 - t.rating)}</span></div>
+            <p class="quote">“{t.text}”</p>
+            <div class="who">{t.name} <span>· {t.city}</span></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Membership teaser -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head center">
+        <span class="eyebrow">Save more</span>
+        <h2 class="h2">Membership plans from ₹499/year</h2>
+        <p class="lead">Discounts on every service, free services and priority slots.</p>
+      </div>
+      <div class="grid c3">
+        {plans.map((p) => (
+          <div class="card" style={p.highlighted ? 'border:2px solid var(--primary)' : ''}>
+            {p.highlighted && <span class="pill">Most popular</span>}
+            <h3 style="margin-top:10px">{p.name}</h3>
+            <div class="price">₹{p.price.toLocaleString('en-IN')} <small>/ year</small></div>
+            <p style="margin:8px 0 12px">{p.tagline}</p>
+            <div style="font-size:14px;line-height:1.9">
+              {p.perks.map((perk) => <div>✓ {perk}</div>)}
+            </div>
+            <a href="/membership/" class="btn outline sm" style="margin-top:16px">Learn more</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section alt">
+    <div class="wrap" style="max-width:820px">
+      <div class="section-head center">
+        <span class="eyebrow">Good to know</span>
+        <h2 class="h2">Frequently asked questions</h2>
+      </div>
+      <FAQList items={faqs} />
+      <div class="center" style="margin-top:20px"><a href="/faqs/" class="btn outline sm">All FAQs</a></div>
+    </div>
+  </section>
+
+  <CTA />
+</Base>

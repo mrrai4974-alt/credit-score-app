@@ -1,22 +1,24 @@
 # Doorstep Two-Wheeler Service Platform — Mobile Apps
 
-This repository contains the client applications for the Doorstep Two-Wheeler
-Service Platform defined in the BRD *(Doorstep Two-Wheeler Service Platform,
-v1.0)*. All three share one platform brand.
+This repository contains all four client applications for the Doorstep
+Two-Wheeler Service Platform defined in the BRD *(Doorstep Two-Wheeler Service
+Platform, v1.0)*. All four share one platform brand, and together they cover the
+three-sided marketplace (customer, mechanic, operations) plus the public
+marketing site.
 
-| App | Audience | Stack | BRD section | Location |
+| Client | Audience | Stack | BRD section | Location |
 |---|---|---|---|---|
 | **Bike Mistri** | Field mechanic ("mistri") / partner | Expo RN (Android/iOS/web) | §7.2 (FR-17 … FR-24) | repo root (this README) |
 | **Doorstep Bike Service** | Customer / rider | Expo RN (Android/iOS/web) | §7.1 (FR-01 … FR-16) | [`customer-app/`](customer-app/) |
 | **Doorstep Ops** | Admin / operations team | Vite + React (web) | §7.3 (FR-25 … FR-35) | [`admin-console/`](admin-console/) |
+| **Marketing site** | Prospective customers & partners | Astro (static, SEO) | §5.1 | [`marketing-site/`](marketing-site/) |
 
-> The public marketing website (§5.1) is the one remaining client and is not yet
-> part of this repo.
-
-Each app is self-contained with its own `package.json`; run `npm install` inside
-the app's directory. See [`customer-app/README.md`](customer-app/README.md) and
-[`admin-console/README.md`](admin-console/README.md) for those apps. The rest of
-this document covers the **Bike Mistri partner app** at the repo root.
+Each client is self-contained with its own `package.json`; run `npm install`
+inside its directory. See each client's README:
+[customer-app](customer-app/README.md) ·
+[admin-console](admin-console/README.md) ·
+[marketing-site](marketing-site/README.md). The rest of this document covers the
+**Bike Mistri partner app** at the repo root.
 
 ---
 

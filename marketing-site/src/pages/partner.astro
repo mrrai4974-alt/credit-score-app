@@ -1,0 +1,42 @@
+---
+import Base from '../layouts/Base.astro';
+import LeadForm from '../components/LeadForm.astro';
+
+const perks = [
+  { emoji: '📋', title: 'Steady job flow', body: 'Get assigned doorstep jobs within your service radius.' },
+  { emoji: '💰', title: 'Fair, fast payouts', body: 'Transparent earnings with weekly or instant payouts.' },
+  { emoji: '🎓', title: 'Training & certification', body: 'Upskill across petrol and EV with renewal reminders.' },
+  { emoji: '🛡️', title: 'Verified badge', body: 'Background check and certification build customer trust.' },
+];
+---
+<Base
+  title="Become a Partner — Mechanics & Vendors"
+  description="Join as a verified mechanic or spares vendor. Steady doorstep job flow, fair payouts, training and a verified-partner badge."
+>
+  <section class="hero" style="padding:54px 0 60px">
+    <div class="wrap">
+      <span class="pill">Partner program</span>
+      <h1 style="font-size:38px">Grow with steady doorstep jobs</h1>
+      <p class="sub">Mechanics and spares vendors: join a certified network, get consistent job flow and fair payouts, backed by the Bike Mistri partner app.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="grid c4">
+        {perks.map((p) => (
+          <div class="card"><div class="emoji">{p.emoji}</div><h3>{p.title}</h3><p>{p.body}</p></div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="wrap" style="max-width:760px">
+      <div class="section-head center"><span class="eyebrow">Join us</span><h2 class="h2">Partner application</h2></div>
+      <div class="card">
+        <LeadForm kind="partner" />
+      </div>
+    </div>
+  </section>
+</Base>

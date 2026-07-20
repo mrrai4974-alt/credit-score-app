@@ -1,0 +1,42 @@
+---
+import Base from '../layouts/Base.astro';
+import LeadForm from '../components/LeadForm.astro';
+
+const benefits = [
+  { emoji: '🗺️', title: 'Protected territory', body: 'Exclusive operating rights for your city or zone.' },
+  { emoji: '📘', title: 'Operating playbook', body: 'Standardised processes, checklists and central QA.' },
+  { emoji: '🧑‍🔧', title: 'Mechanic supply', body: 'Shared onboarding, training and dispatch platform.' },
+  { emoji: '📈', title: 'Marketing engine', body: 'City landing pages, campaigns and a trusted brand.' },
+];
+---
+<Base
+  title="Franchise Program — Partner With Us"
+  description="Bring doorstep two-wheeler service to your city. Franchise partners get protected territory, an operating playbook, mechanic supply and a marketing engine."
+>
+  <section class="hero" style="padding:54px 0 60px">
+    <div class="wrap">
+      <span class="pill">Franchise program</span>
+      <h1 style="font-size:38px">Own a doorstep service business in your city</h1>
+      <p class="sub">Expand a proven doorstep model with territory rights, a full operating playbook and revenue share. Backed by a shared tech platform and central QA.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="grid c4">
+        {benefits.map((b) => (
+          <div class="card"><div class="emoji">{b.emoji}</div><h3>{b.title}</h3><p>{b.body}</p></div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="wrap" style="max-width:760px">
+      <div class="section-head center"><span class="eyebrow">Apply now</span><h2 class="h2">Franchise enquiry</h2></div>
+      <div class="card">
+        <LeadForm kind="franchise" />
+      </div>
+    </div>
+  </section>
+</Base>

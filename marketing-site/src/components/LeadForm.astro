@@ -1,0 +1,60 @@
+---
+interface Props {
+  kind: 'franchise' | 'partner' | 'contact';
+}
+const { kind } = Astro.props;
+
+const config = {
+  franchise: {
+    submit: 'Apply for franchise',
+    extra: { label: 'Preferred city / territory', name: 'city', type: 'text', placeholder: 'e.g. Coimbatore' },
+    select: { label: 'Investment capacity', name: 'investment', options: ['₹10–15L', '₹15–20L', '₹20–25L', '₹25L+'] },
+    note: 'Our franchise team responds within 2 business days.',
+  },
+  partner: {
+    submit: 'Join as a partner',
+    extra: { label: 'City you operate in', name: 'city', type: 'text', placeholder: 'e.g. Bengaluru' },
+    select: { label: 'Partner type', name: 'type', options: ['Mechanic', 'Vendor / spares supplier'] },
+    note: 'Verified mechanics start receiving jobs after a quick background check.',
+  },
+  contact: {
+    submit: 'Request callback',
+    extra: { label: 'Your bike (brand & model)', name: 'bike', type: 'text', placeholder: 'e.g. Honda Activa 6G' },
+    select: { label: 'Service needed', name: 'service', options: ['General service', 'EV service', 'Premium / performance', 'Royal Enfield', 'Special service', 'Not sure — advise me'] },
+    note: 'An advisor calls you back within 5 minutes during working hours.',
+  },
+}[kind];
+---
+<form class="form" onsubmit="event.preventDefault(); this.querySelector('.lead-done').style.display='block'; this.querySelector('.btn').style.display='none';">
+  <div class="row2">
+    <div>
+      <label>Full name</label>
+      <input type="text" name="name" required placeholder="Your name" />
+    </div>
+    <div>
+      <label>Mobile number</label>
+      <input type="tel" name="phone" required placeholder="10-digit mobile" pattern="[0-9]{10}" />
+    </div>
+  </div>
+  <div class="row2">
+    <div>
+      <label>{config.extra.label}</label>
+      <input type={config.extra.type} name={config.extra.name} placeholder={config.extra.placeholder} />
+    </div>
+    <div>
+      <label>{config.select.label}</label>
+      <select name={config.select.name}>
+        {config.select.options.map((o) => <option>{o}</option>)}
+      </select>
+    </div>
+  </div>
+  <div>
+    <label>Message (optional)</label>
+    <textarea name="message" rows="3" placeholder="Anything we should know?"></textarea>
+  </div>
+  <button type="submit" class="btn primary">{config.submit}</button>
+  <p class="note lead-done" style="display:none;color:var(--success);font-weight:600">
+    ✓ Thanks! We've received your details — {config.note.toLowerCase()}
+  </p>
+  <p class="note" style="margin:0">{config.note}</p>
+</form>

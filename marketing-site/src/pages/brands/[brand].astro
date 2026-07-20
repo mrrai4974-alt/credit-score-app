@@ -1,0 +1,67 @@
+---
+import Base from '../../layouts/Base.astro';
+import CTA from '../../components/CTA.astro';
+import { brands, services, slugify } from '../../data/site';
+
+export function getStaticPaths() {
+  return brands.map((b) => ({ params: { brand: slugify(b.name) }, props: { brand: b } }));
+}
+
+const { brand } = Astro.props;
+const isEv = brand.type === 'EV';
+// Suggest relevant services by brand type
+const suggested = services.filter((s) =>
+  brand.name === 'Royal Enfield'
+    ? s.category === 'royal-enfield'
+    : isEv
+    ? s.category === 'ev'
+    : s.category === 'general',
+);
+const gst = (n: number) => Math.round(n * 1.18);
+---
+<Base
+  title={`${brand.name} Bike Service at Your Doorstep`}
+  description={`Doorstep service for ${brand.name} two-wheelers — ${brand.models.join(', ')}. Certified mechanics, genuine spares, upfront pricing and warranty.`}
+>
+  <section class="hero" style="padding:54px 0 60px">
+    <div class="wrap">
+      <div class="breadcrumb"><a href="/brands/">Brands</a> / {brand.name}</div>
+      <span class="pill">{brand.type} · doorstep service</span>
+      <h1 style="font-size:38px">{brand.name} doorstep service</h1>
+      <p class="sub">Genuine-spares service for your {brand.name} by mechanics trained on the platform. Book at home or office with upfront pricing.</p>
+      <div class="hero-cta"><a href="/contact/" class="btn primary">Book {brand.name} service</a></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2 class="h2">{brand.name} models we service</h2></div>
+      <div class="tags">
+        {brand.models.map((m) => <span class="tag">{m}</span>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="wrap">
+      <div class="section-head"><h2 class="h2">Recommended services</h2></div>
+      <div class="card">
+        {suggested.map((s) => (
+          <div class="svc-row">
+            <div>
+              <strong>{s.name}</strong>
+              <div class="svc-meta">{s.durationMin} min{s.points > 0 ? ` · ${s.points}-point` : ''}</div>
+            </div>
+            <div style="text-align:right">
+              {s.price === null
+                ? <span class="price" style="color:var(--primary-dark)">Get quote</span>
+                : <div><div class="price">₹{gst(s.price).toLocaleString('en-IN')}</div><small style="color:var(--text-muted)">incl. GST</small></div>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <CTA title={`Book a ${brand.name} service today`} />
+</Base>

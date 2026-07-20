@@ -35,3 +35,6 @@ yarn-error.*
 
 # Vite
 admin-console/dist/
+
+# Astro
+.astro/

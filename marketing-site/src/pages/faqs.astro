@@ -1,0 +1,26 @@
+---
+import Base from '../layouts/Base.astro';
+import CTA from '../components/CTA.astro';
+import FAQList from '../components/FAQList.astro';
+import { faqs } from '../data/site';
+---
+<Base
+  title="Frequently Asked Questions"
+  description="Answers about doorstep bike servicing — turnaround time, workmanship warranty, pricing and GST, excluded services, payments and more."
+>
+  <section class="hero" style="padding:54px 0 60px">
+    <div class="wrap">
+      <span class="pill">Help centre</span>
+      <h1 style="font-size:38px">Frequently asked questions</h1>
+      <p class="sub">Everything you need to know about doorstep two-wheeler servicing.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap" style="max-width:820px">
+      <FAQList items={faqs} />
+    </div>
+  </section>
+
+  <CTA />
+</Base>

@@ -1,0 +1,50 @@
+---
+import Base from '../layouts/Base.astro';
+import CTA from '../components/CTA.astro';
+import { media, stats } from '../data/site';
+---
+<Base
+  title="About Us & Media"
+  description="About Doorstep Bike Service — our mission to organise India's two-wheeler after-market with certified, doorstep, transparently-priced service. Press & media."
+>
+  <section class="hero" style="padding:54px 0 60px">
+    <div class="wrap">
+      <span class="pill">Our story</span>
+      <h1 style="font-size:38px">Organising India's two-wheeler service, one doorstep at a time</h1>
+      <p class="sub">We connect riders with certified, trained mechanics who travel to their home or office — combining fair, transparent pricing with dependable service quality.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="grid c4">
+        {stats.map((s) => (
+          <div class="card center"><div class="price" style="font-size:30px">{s.value}</div><p style="margin-top:4px">{s.label}</p></div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="wrap" style="max-width:820px">
+      <div class="section-head"><span class="eyebrow">Why we exist</span><h2 class="h2">The problem we solve</h2></div>
+      <p class="lead" style="max-width:none">Two-wheeler owners have had to choose between unorganised local garages — inconsistent quality, no warranty, opaque pricing — and expensive authorised centres that mean travel and long waits. We built a standardised, trustworthy, convenient doorstep alternative that pairs fair pricing with quality assurance: certified mechanics, a multi-point inspection, upfront pricing, mandatory approval for any extra work, and a workmanship warranty.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><span class="eyebrow">Newsroom</span><h2 class="h2">In the media</h2></div>
+      <div class="grid c3">
+        {media.map((m) => (
+          <div class="card">
+            <span class="pill muted">{m.outlet} · {m.date}</span>
+            <h3 style="margin-top:12px;font-size:16px">{m.title}</h3>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <CTA />
+</Base>
