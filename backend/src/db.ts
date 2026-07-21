@@ -60,9 +60,16 @@ CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
 CREATE INDEX IF NOT EXISTS idx_bookings_city ON bookings(city);
 `;
 
+// Managed Postgres (Render/Neon/Supabase/Railway) requires SSL; local doesn't.
+const NEEDS_SSL =
+  !/localhost|127\.0\.0\.1|@db:/.test(DATABASE_URL) || process.env.PGSSL === 'true';
+
 class Store {
   data: DB = seed();
-  private pool = new Pool({ connectionString: DATABASE_URL });
+  private pool = new Pool({
+    connectionString: DATABASE_URL,
+    ssl: NEEDS_SSL ? { rejectUnauthorized: false } : false,
+  });
   private writing: Promise<void> = Promise.resolve();
   private dirty = false;
 
