@@ -1,0 +1,16 @@
+{
+  "name": "doorstep-marketing-site",
+  "version": "1.0.0",
+  "description": "Public marketing website for the Doorstep Two-Wheeler Service Platform",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "astro": "^4.15.9"
+  }
+}

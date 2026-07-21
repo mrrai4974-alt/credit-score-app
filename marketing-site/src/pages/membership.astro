@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import CTA from '../components/CTA.astro';
+import { plans } from '../data/site';
+---
+<Base
+  title="Membership Plans — Save on Every Service"
+  description="Doorstep Bike Service membership plans from ₹499/year: discounts on every service, free services, priority slots and extended warranty."
+>
+  <section class="hero" style="padding:54px 0 60px">
+    <div class="wrap">
+      <span class="pill">Recurring value</span>
+      <h1 style="font-size:38px">Membership plans</h1>
+      <p class="sub">Subscribe once, save all year — discounts on every service, free periodic services and priority booking slots.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="grid c3">
+        {plans.map((p) => (
+          <div class="card" style={p.highlighted ? 'border:2px solid var(--primary);box-shadow:var(--shadow)' : ''}>
+            {p.highlighted && <span class="pill">Most popular</span>}
+            <h3 style="margin-top:10px;font-size:22px">{p.name}</h3>
+            <div class="price" style="font-size:30px;margin-top:6px">₹{p.price.toLocaleString('en-IN')} <small>/ year</small></div>
+            <p style="margin:8px 0 16px">{p.tagline}</p>
+            <div style="font-size:14.5px;line-height:2">
+              {p.perks.map((perk) => <div>✓ {perk}</div>)}
+            </div>
+            <a href="/contact/" class={`btn ${p.highlighted ? 'primary' : 'outline'}`} style="margin-top:18px;width:100%;justify-content:center">Get {p.name}</a>
+          </div>
+        ))}
+      </div>
+      <p class="note" style="margin-top:22px">Plans renew annually and can be cancelled anytime. Membership discounts apply on top of published, GST-inclusive prices.</p>
+    </div>
+  </section>
+
+  <CTA title="Join and start saving today" />
+</Base>

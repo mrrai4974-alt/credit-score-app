@@ -1,0 +1,15 @@
+---
+import type { FAQ } from '../data/site';
+interface Props {
+  items: FAQ[];
+}
+const { items } = Astro.props;
+---
+<div>
+  {items.map((f) => (
+    <details class="faq">
+      <summary>{f.q}</summary>
+      <p>{f.a}</p>
+    </details>
+  ))}
+</div>

@@ -1,0 +1,51 @@
+---
+import Base from '../../layouts/Base.astro';
+import CTA from '../../components/CTA.astro';
+import { categories, cities, slugify } from '../../data/site';
+
+export function getStaticPaths() {
+  return cities.map((c) => ({ params: { city: slugify(c.name) }, props: { city: c } }));
+}
+
+const { city } = Astro.props;
+---
+<Base
+  title={`Doorstep Bike Service in ${city.name}`}
+  description={`Book doorstep two-wheeler service in ${city.name}. Certified mechanics across ${city.areas.join(', ')} with upfront pricing and a workmanship warranty.`}
+>
+  <section class="hero" style="padding:54px 0 60px">
+    <div class="wrap">
+      <div class="breadcrumb"><a href="/cities/">Cities</a> / {city.name}</div>
+      <span class="pill">{city.hubs} hubs · {city.areas.length}+ areas</span>
+      <h1 style="font-size:38px">Doorstep bike service in {city.name}</h1>
+      <p class="sub">Certified mechanics serve homes and offices across {city.name} with a ~60-minute turnaround, upfront pricing and a workmanship warranty.</p>
+      <div class="hero-cta"><a href="/contact/" class="btn primary">Book in {city.name}</a></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2 class="h2">Neighbourhoods we serve in {city.name}</h2></div>
+      <div class="tags">
+        {city.areas.map((a) => <span class="tag">{a}</span>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="wrap">
+      <div class="section-head"><h2 class="h2">Services available in {city.name}</h2></div>
+      <div class="grid c3">
+        {categories.map((c) => (
+          <a href={`/services/${c.key}/`} class="card hover">
+            <div class="emoji">{c.emoji}</div>
+            <h3>{c.name}</h3>
+            <p>{c.blurb}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <CTA title={`Book a doorstep service in ${city.name}`} />
+</Base>

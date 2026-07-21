@@ -1,0 +1,29 @@
+---
+import Base from '../../layouts/Base.astro';
+import CTA from '../../components/CTA.astro';
+import { blog } from '../../data/site';
+
+export function getStaticPaths() {
+  return blog.map((p) => ({ params: { slug: p.slug }, props: { post: p } }));
+}
+
+const { post } = Astro.props;
+---
+<Base title={post.title} description={post.excerpt}>
+  <article class="section">
+    <div class="wrap" style="max-width:760px">
+      <div class="breadcrumb"><a href="/blog/">Blog</a> / {post.tag}</div>
+      <span class="pill muted">{post.tag} · {post.date}</span>
+      <h1 style="font-size:36px;margin:14px 0 18px">{post.title}</h1>
+      <p class="lead" style="max-width:none">{post.excerpt}</p>
+      <div style="margin-top:20px">
+        {post.body.map((para) => <p style="font-size:16px;color:var(--text);line-height:1.7;margin:0 0 16px">{para}</p>)}
+      </div>
+      <div class="note" style="margin-top:20px">
+        Ready to book? <a href="/contact/" style="color:var(--primary-dark);font-weight:700">Get a doorstep service →</a>
+      </div>
+    </div>
+  </article>
+
+  <CTA />
+</Base>

@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+import LeadForm from '../components/LeadForm.astro';
+import { SITE } from '../data/site';
+---
+<Base
+  title="Book a Service / Contact Us"
+  description="Book a doorstep two-wheeler service or request a callback. Our advisors respond within 5 minutes during working hours."
+>
+  <section class="hero" style="padding:54px 0 60px">
+    <div class="wrap">
+      <span class="pill">Quick help</span>
+      <h1 style="font-size:38px">Book a service or get a callback</h1>
+      <p class="sub">Leave your details and an advisor will call you back within 5 minutes to confirm your doorstep booking.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="grid c2" style="align-items:start">
+        <div class="card">
+          <h3 style="margin-bottom:16px">Request a callback</h3>
+          <LeadForm kind="contact" />
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <h3>Talk to us</h3>
+            <p style="margin-top:8px">📞 <strong>{SITE.phone}</strong></p>
+            <p>✉️ {SITE.email}</p>
+            <p>💬 WhatsApp & in-app chat · 24/7</p>
+          </div>
+          <div class="card">
+            <h3>Prefer the app?</h3>
+            <p style="margin-top:8px">Book, track your mechanic live, approve any extra work and pay — all in the customer app.</p>
+            <div style="display:flex;gap:10px;margin-top:14px">
+              <span class="tag">📱 Android</span>
+              <span class="tag">🍎 iOS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

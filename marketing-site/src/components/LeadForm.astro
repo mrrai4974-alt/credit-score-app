@@ -1,0 +1,118 @@
+---
+interface Props {
+  kind: 'franchise' | 'partner' | 'contact';
+}
+const { kind } = Astro.props;
+
+// Client posts leads here. Set PUBLIC_API_URL at build to your backend.
+const API = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:4000/api';
+
+const config = {
+  franchise: {
+    submit: 'Apply for franchise',
+    extra: { label: 'Preferred city / territory', name: 'city', type: 'text', placeholder: 'e.g. Coimbatore' },
+    select: { label: 'Investment capacity', name: 'investment', options: ['₹10–15L', '₹15–20L', '₹20–25L', '₹25L+'] },
+    note: 'Our franchise team responds within 2 business days.',
+  },
+  partner: {
+    submit: 'Join as a partner',
+    extra: { label: 'City you operate in', name: 'city', type: 'text', placeholder: 'e.g. Bengaluru' },
+    select: { label: 'Partner type', name: 'partnerType', options: ['Mechanic', 'Vendor / spares supplier'] },
+    note: 'Verified mechanics start receiving jobs after a quick background check.',
+  },
+  contact: {
+    submit: 'Request callback',
+    extra: { label: 'Your bike (brand & model)', name: 'bike', type: 'text', placeholder: 'e.g. Honda Activa 6G' },
+    select: { label: 'Service needed', name: 'service', options: ['General service', 'EV service', 'Premium / performance', 'Royal Enfield', 'Special service', 'Not sure — advise me'] },
+    note: 'An advisor calls you back within 5 minutes during working hours.',
+  },
+}[kind];
+---
+<form class="form lead-form" data-api={API} data-kind={kind}>
+  <div class="row2">
+    <div>
+      <label>Full name</label>
+      <input type="text" name="name" required placeholder="Your name" />
+    </div>
+    <div>
+      <label>Mobile number</label>
+      <input type="tel" name="phone" required placeholder="10-digit mobile" pattern="[0-9]{10}" />
+    </div>
+  </div>
+  <div class="row2">
+    <div>
+      <label>{config.extra.label}</label>
+      <input type={config.extra.type} name={config.extra.name} placeholder={config.extra.placeholder} />
+    </div>
+    <div>
+      <label>{config.select.label}</label>
+      <select name={config.select.name}>
+        {config.select.options.map((o) => <option>{o}</option>)}
+      </select>
+    </div>
+  </div>
+  <div>
+    <label>Message (optional)</label>
+    <textarea name="message" rows="3" placeholder="Anything we should know?"></textarea>
+  </div>
+  <button type="submit" class="btn primary lead-submit">{config.submit}</button>
+  <p class="note lead-done" style="display:none;color:var(--success);font-weight:600">
+    ✓ Thanks! We've received your details — {config.note.toLowerCase()}
+  </p>
+  <p class="note lead-error" style="display:none;color:var(--primary-dark);font-weight:600"></p>
+  <p class="note">{config.note}</p>
+</form>
+
+<script>
+  const TYPE_MAP: Record<string, string> = {
+    franchise: 'Franchise',
+    contact: 'Callback',
+  };
+
+  document.querySelectorAll<HTMLFormElement>('form.lead-form').forEach((form) => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const api = form.dataset.api!;
+      const kind = form.dataset.kind!;
+      const data = new FormData(form);
+      const get = (k: string) => (data.get(k) ? String(data.get(k)) : '');
+
+      let type = TYPE_MAP[kind] ?? 'Callback';
+      if (kind === 'partner') {
+        type = get('partnerType').startsWith('Vendor') ? 'Vendor' : 'Mechanic Partner';
+      }
+      const detailParts = [
+        get('investment') && `Investment: ${get('investment')}`,
+        get('bike') && `Bike: ${get('bike')}`,
+        get('service') && `Service: ${get('service')}`,
+        get('message'),
+      ].filter(Boolean);
+
+      const done = form.querySelector<HTMLElement>('.lead-done')!;
+      const err = form.querySelector<HTMLElement>('.lead-error')!;
+      const btn = form.querySelector<HTMLElement>('.lead-submit')!;
+
+      try {
+        const res = await fetch(api + '/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: get('name'),
+            phone: get('phone'),
+            city: get('city'),
+            type,
+            detail: detailParts.join(' · '),
+          }),
+        });
+        if (!res.ok) throw new Error('Request failed');
+        done.style.display = 'block';
+        err.style.display = 'none';
+        btn.style.display = 'none';
+        form.reset();
+      } catch {
+        err.textContent = '⚠ Could not submit right now. Please call us instead.';
+        err.style.display = 'block';
+      }
+    });
+  });
+</script>

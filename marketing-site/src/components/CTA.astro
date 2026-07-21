@@ -1,0 +1,22 @@
+---
+interface Props {
+  title?: string;
+  text?: string;
+}
+const {
+  title = 'Ready for a doorstep service?',
+  text = 'Book in under 5 taps. Certified mechanic, transparent price, at your door.',
+} = Astro.props;
+---
+<section class="section">
+  <div class="wrap">
+    <div class="cta">
+      <h2>{title}</h2>
+      <p>{text}</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a href="/contact/" class="btn light">Book a service</a>
+        <a href="/services/" class="btn ghost" style="background:rgba(255,255,255,0.18);color:#fff">Browse services</a>
+      </div>
+    </div>
+  </div>
+</section>

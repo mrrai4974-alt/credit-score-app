@@ -1,0 +1,37 @@
+---
+import Base from '../../layouts/Base.astro';
+import CTA from '../../components/CTA.astro';
+import { cities, slugify } from '../../data/site';
+---
+<Base
+  title="Cities We Serve — Doorstep Bike Service"
+  description="Doorstep two-wheeler service across 50+ Indian cities including Bengaluru, Mumbai, Delhi NCR, Hyderabad, Pune and Chennai. Check your neighbourhood."
+>
+  <section class="hero" style="padding:54px 0 60px">
+    <div class="wrap">
+      <span class="pill">50+ cities</span>
+      <h1 style="font-size:38px">Find doorstep service in your city</h1>
+      <p class="sub">We serve riders across major metros and are expanding fast. Select your city to see covered neighbourhoods.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="grid c3">
+        {cities.map((c) => (
+          <a href={`/cities/${slugify(c.name)}/`} class="card hover">
+            <h3 style="margin:0">📍 {c.name}</h3>
+            <p style="margin-top:8px">{c.hubs} service hubs · {c.areas.length}+ neighbourhoods</p>
+            <p style="margin-top:6px;font-size:13px">{c.areas.slice(0, 3).join(', ')}…</p>
+            <div style="margin-top:12px" class="pill">View coverage →</div>
+          </a>
+        ))}
+      </div>
+      <div class="note" style="margin-top:22px">
+        Don't see your area? <a href="/contact/" style="color:var(--primary-dark);font-weight:700">Request your neighbourhood</a> and we'll notify you when we launch.
+      </div>
+    </div>
+  </section>
+
+  <CTA />
+</Base>
