@@ -72,6 +72,19 @@ On a physical device, set each app's API base to your machine's LAN IP via the
 documented env var (`EXPO_PUBLIC_API_URL`, `VITE_API_URL`, `PUBLIC_API_URL`).
 The backend seeds demo data on first run; `POST /api/dev/reset` restores it.
 
+Even simpler — run the backend + database with one command:
+
+```bash
+docker compose up --build     # Postgres + API at http://localhost:4000/api
+```
+
+## Testing & deployment
+
+- **[TESTING.md](TESTING.md)** — try the whole platform in your browser (demo
+  logins + a step-by-step connected-flow walkthrough).
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** — publish the backend (Render blueprint /
+  Docker) and build an installable Android APK (EAS) or host the apps as web/PWA.
+
 ---
 
 # Bike Mistri — Partner (Mechanic) App
