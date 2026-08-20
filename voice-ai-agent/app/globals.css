@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  /* Deep, calm gradient backdrop that lets the glowing orb pop. */
+  background: radial-gradient(
+      120% 120% at 50% 0%,
+      #1e1b4b 0%,
+      #0f172a 45%,
+      #020617 100%
+    )
+    fixed;
+  color: #e2e8f0;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+/* Respect users who prefer reduced motion — freeze the decorative loops. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
