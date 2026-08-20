@@ -69,7 +69,7 @@ export default function Home() {
       </section>
 
       <footer className="mt-4 text-center text-[11px] text-slate-600">
-        Phase 2 · Live speech recognition. Hindi · Hinglish · English
+        Phase 3 · Powered by Claude. Hindi · Hinglish · English
       </footer>
     </main>
   );

@@ -37,18 +37,54 @@ export function useVoiceAgent() {
   const hadErrorRef = useRef(false);
   const langRef = useRef<Lang>(lang);
   langRef.current = lang;
+  // Latest messages, readable inside async callbacks without stale closures.
+  const messagesRef = useRef<Message[]>([]);
 
   // Web Speech API support can only be checked in the browser.
   useEffect(() => {
     setSupported(sttRef.current.isSupported());
   }, []);
 
-  const addMessage = useCallback((role: Message["role"], content: string) => {
-    setMessages((prev) => [
-      ...prev,
-      { id: nextId(), role, content, createdAt: new Date().toISOString() },
-    ]);
-  }, []);
+  const addMessage = useCallback(
+    (role: Message["role"], content: string): Message => {
+      const msg: Message = {
+        id: nextId(),
+        role,
+        content,
+        createdAt: new Date().toISOString(),
+      };
+      messagesRef.current = [...messagesRef.current, msg];
+      setMessages(messagesRef.current);
+      return msg;
+    },
+    [],
+  );
+
+  /** Send the conversation to Claude (server-side) and speak/show the reply. */
+  const askAI = useCallback(async () => {
+    setStatus("processing");
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: messagesRef.current }),
+      });
+      const data = (await res.json()) as { reply?: string; error?: string };
+
+      if (!res.ok || !data.reply) {
+        setErrorMessage(data.error || "AI se jawab nahi mila. Dobara try karo.");
+        setStatus("error");
+        return;
+      }
+
+      addMessage("assistant", data.reply);
+      // Phase 4 will speak this reply aloud; for now we just show it.
+      setStatus("idle");
+    } catch {
+      setErrorMessage("Network problem. Apna internet check karke try karo.");
+      setStatus("error");
+    }
+  }, [addMessage]);
 
   const commitTurn = useCallback(() => {
     const text = (finalBufferRef.current + interimRef.current).trim();
@@ -62,16 +98,8 @@ export function useVoiceAgent() {
     }
 
     addMessage("user", text);
-    setStatus("processing");
-    // Placeholder until Claude is wired up in Phase 3.
-    window.setTimeout(() => {
-      addMessage(
-        "assistant",
-        "Heard you clearly! 🎧 Real AI replies connect in Phase 3.",
-      );
-      setStatus("idle");
-    }, 600);
-  }, [addMessage]);
+    void askAI();
+  }, [addMessage, askAI]);
 
   const startListening = useCallback(async () => {
     setErrorMessage("");
@@ -145,6 +173,7 @@ export function useVoiceAgent() {
 
   const reset = useCallback(() => {
     sessionRef.current?.stop();
+    messagesRef.current = [];
     setMessages([]);
     setInterim("");
     interimRef.current = "";

@@ -69,7 +69,7 @@ environment variables. Nothing secret is prefixed with `NEXT_PUBLIC_`. Copy
 
 1. ✅ **Phase 1** — Project + mobile-first UI
 2. ✅ **Phase 2** — Microphone + speech recognition (browser Web Speech API)
-3. Phase 3 — Connect Claude API
+3. ✅ **Phase 3** — Connect Claude API (server-side, key kept secret)
 4. Phase 4 — Text-to-speech
 5. Phase 5 — Real-time conversation (barge-in / interrupt)
 6. Phase 6 — Conversation memory
