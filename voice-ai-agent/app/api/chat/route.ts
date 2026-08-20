@@ -71,19 +71,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ reply });
   } catch (err) {
     // Map to friendly, non-technical messages. Never leak internals.
-    if (err instanceof Error && err.message === "MISSING_API_KEY") {
+    const code = err instanceof Error ? err.message : "";
+
+    if (code === "MISSING_API_KEY") {
       return NextResponse.json(
         { error: "AI abhi set up nahi hui hai. (API key missing.)" },
         { status: 500 },
       );
     }
-    if (err instanceof Anthropic.AuthenticationError) {
+    if (code === "AI_AUTH" || err instanceof Anthropic.AuthenticationError) {
       return NextResponse.json(
         { error: "AI ki key galat hai. Setup check karo." },
         { status: 500 },
       );
     }
-    if (err instanceof Anthropic.RateLimitError) {
+    if (code === "AI_RATE_LIMIT" || err instanceof Anthropic.RateLimitError) {
       return NextResponse.json(
         { error: "AI abhi busy hai. Thodi der baad try karo." },
         { status: 429 },
