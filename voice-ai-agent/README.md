@@ -24,10 +24,14 @@ npm run dev
 
 Open **http://localhost:3000** on your phone or desktop.
 
-**Try it:** tap the big glowing orb. In Phase 1 it runs a scripted demo so you
-can see every visual state — Idle → Connecting → Listening → Thinking →
-Speaking — with animations and a sample transcript. Tap while it's *Speaking* to
-preview the interrupt behavior.
+**Try it:** tap the big glowing orb and **allow microphone access**. It starts
+listening and your words stream in as a live transcript. Tap again to stop, and
+your speech is committed to the conversation. Pick your language with the toggle
+(English/Hinglish or हिन्दी). The AI reply is a placeholder for now — Claude
+connects in Phase 3.
+
+> Note: speech recognition needs **HTTPS or localhost** and a Chromium/Safari
+> browser (Firefox doesn't support the Web Speech API).
 
 ---
 
@@ -64,7 +68,7 @@ environment variables. Nothing secret is prefixed with `NEXT_PUBLIC_`. Copy
 ## Roadmap
 
 1. ✅ **Phase 1** — Project + mobile-first UI
-2. Phase 2 — Microphone + speech recognition
+2. ✅ **Phase 2** — Microphone + speech recognition (browser Web Speech API)
 3. Phase 3 — Connect Claude API
 4. Phase 4 — Text-to-speech
 5. Phase 5 — Real-time conversation (barge-in / interrupt)

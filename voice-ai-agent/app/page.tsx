@@ -3,11 +3,21 @@
 import { StatusBadge } from "@/components/StatusBadge";
 import { TranscriptPanel } from "@/components/TranscriptPanel";
 import { VoiceOrb } from "@/components/VoiceOrb";
+import { LangToggle } from "@/components/LangToggle";
 import { useVoiceAgent } from "@/hooks/useVoiceAgent";
 import { STATUS_META } from "@/types";
 
 export default function Home() {
-  const { status, messages, toggle, reset } = useVoiceAgent();
+  const {
+    status,
+    messages,
+    interim,
+    errorMessage,
+    lang,
+    setLang,
+    toggle,
+    reset,
+  } = useVoiceAgent();
   const meta = STATUS_META[status];
 
   return (
@@ -18,16 +28,25 @@ export default function Home() {
           AI Assistant
         </h1>
         <StatusBadge status={status} />
+        <LangToggle lang={lang} onChange={setLang} disabled={status === "listening"} />
       </header>
 
       {/* Orb + status hint */}
       <section className="flex flex-1 flex-col items-center justify-center gap-8">
         <VoiceOrb status={status} onTap={toggle} />
-        <div className="text-center">
+        <div className="min-h-[64px] px-2 text-center">
           <p className="text-lg font-semibold" style={{ color: meta.color }}>
             {meta.label}
           </p>
-          <p className="mt-1 text-sm text-slate-400">&ldquo;{meta.hint}&rdquo;</p>
+          {status === "error" && errorMessage ? (
+            <p className="mt-1 text-sm text-red-300">{errorMessage}</p>
+          ) : interim ? (
+            <p className="mt-1 animate-fade-up text-sm italic text-cyan-200">
+              &ldquo;{interim}&rdquo;
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-slate-400">&ldquo;{meta.hint}&rdquo;</p>
+          )}
         </div>
       </section>
 
@@ -50,7 +69,7 @@ export default function Home() {
       </section>
 
       <footer className="mt-4 text-center text-[11px] text-slate-600">
-        Phase 1 · UI preview (mock). Hindi · Hinglish · English
+        Phase 2 · Live speech recognition. Hindi · Hinglish · English
       </footer>
     </main>
   );
